@@ -1,45 +1,30 @@
-import { useState } from 'react'
-import { BrowserRouter as Router } from "react-router-dom";
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './index.css'
-import Navbar from "./components/Navbar"
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Navbar from "./components/Navbar";
+// Uvozi nove strani (komponente)
+import Dashboard from "./pages/Dashboard";
+import Log from "./pages/Log";
+import Calendar from "./pages/Calendar";
+import Settings from "./pages/Settings";
+import "./index.css";
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
     <Router>
+      {/* Fiksiran navbar */}
       <Navbar />
-      <div className="bg-gray-900 min-h-screen px-2">
-        <div>
-          <a href="https://vite.dev" target="_blank" rel="noopener noreferrer">
-            <img src={viteLogo} className="logo" alt="Vite logo" />
-          </a>
-          <a href="https://react.dev" target="_blank" rel="noopener noreferrer">
-            <img src={reactLogo} className="logo react" alt="React logo" />
-          </a>
-        </div>
-        <h1 className="text-4xl font-extrabold underline text-pink-500 mt-4">
-          Tailwind deluje!
-        </h1>
-        <div className="card mt-8">
-          <button
-            className="bg-fuchsia-500 hover:bg-lime-400 text-white font-semibold py-2 px-4 rounded shadow-lg transition"
-            onClick={() => setCount((count) => count + 1)}
-          >
-            count is {count}
-          </button>
-          <p className="mt-2 text-gray-200">
-            Edit <code>src/App.jsx</code> and save to test HMR
-          </p>
-        </div>
-        <p className="read-the-docs text-gray-400 mt-4">
-          Click on the Vite and React logos to learn more
-        </p>
+      {/* Glavna vsebina strani */}
+      <div className="bg-gray-900 min-h-screen px-2 pt-4">
+        <Routes>
+          {/* Nastavi, katera komponenta naj se prikaže na določeni poti */}
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/log" element={<Log />} />
+          <Route path="/calendar" element={<Calendar />} />
+          <Route path="/settings" element={<Settings />} />
+        </Routes>
       </div>
     </Router>
-  )
+  );
 }
 
-export default App
+export default App;
