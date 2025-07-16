@@ -1,12 +1,59 @@
-# React + Vite
+# FitApp
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**FitApp** je sodobna, minimalistična spletna aplikacija za spremljanje in organizacijo osebnih športnih aktivnosti (treningi, obroki, koledar, statistika).  
+Projekt uporabljam za učenje razvoja modernih spletnih aplikacij s pomočjo React in Tailwind CSS.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Zakaj sem ustvaril ta projekt?
 
-## Expanding the ESLint configuration
+- **Želim se naučiti celoten proces razvoja aplikacije:** od postavitve projekta, oblikovanja dizajna, programiranja, do verzioniranja in odpravljanja napak.
+- **Učenje sodobnega frontenda:** React (komponente, hooks, router), Tailwind CSS (utility-first stiliranje), responsive dizajn, moderne navigacije.
+- **Uporaba Git/GitHub:** da sproti shranjujem napredek, se naučim dobrih praks verzioniranja in si lahko brez strahu eksperimentiram.
+- **Samostojno odpravljanje napak:** branje errorjev, iskanje rešitev, komentirana koda za lažje razumevanje.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## 🛠️ Tehnologije
+
+- **React** (Vite template)
+- **Tailwind CSS** (utility-first framework)
+- **React Router DOM** (SPA navigacija)
+- **ESLint** (za boljšo kvaliteto kode)
+- **VS Code** z uporabnimi razširitvami (Tailwind IntelliSense, Prettier...)
+
+---
+
+## 📋 Funkcionalnosti (MVP)
+
+- **Pregled in vnos treningov/obrokov**
+- **Dashboard z grafi napredka**
+- **Koledar aktivnosti**
+- **Enostavna, motivacijska in športna uporabniška izkušnja**
+- **Responsive dizajn – aplikacija deluje na vseh napravah**
+- **Možnost širitve za več uporabnikov/ekip v prihodnosti**
+
+---
+
+## 📈 Cilji razvoja
+
+- Razumeti celoten “lifecycle” razvoja spletne aplikacije.
+- Razbiti projekt na manjše komponente in funkcionalnosti.
+- Poglobiti znanje verzioniranja s pomočjo Git/GitHub.
+- Vsako napako ali izboljšavo sproti razumeti in dokumentirati.
+- Pridobiti izkušnje, kot jih uporabljajo pravi dev timi.
+
+---
+
+## 🔜 Trenutni napredek
+
+- Inicializiran projekt (Vite + React + Tailwind CSS).
+- Navbar z modernim dizajnom in responsive podporo.
+- Pripravljen “routing” za večstransko aplikacijo (Dashboard, Log, Calendar, Settings).
+- Osnovne strani pripravljene za dodajanje novih funkcionalnosti.
+
+---
+
+**Projekt v razvoju – vsak commit je del mojega učenja!**  
+Če ti je projekt zanimiv, lahko spremljaš napredek na GitHubu.
+
