@@ -1,3 +1,4 @@
+
 // src/components/ConfirmModal.jsx
 function ConfirmModal({ open, title, onConfirm, onCancel, confirmText = "Izbriši", cancelText = "Prekliči" }) {
   if (!open) return null;

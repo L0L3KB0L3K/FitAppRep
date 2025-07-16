@@ -1,4 +1,5 @@
 // src/components/TrainingCard.jsx
+
 function TrainingCard({ training, onDelete }) {
   return (
     <div className="bg-white/10 rounded-xl shadow-lg p-5 border border-sky-400">
@@ -15,12 +16,14 @@ function TrainingCard({ training, onDelete }) {
         </span>
       </div>
       <div className="text-gray-200 text-sm mb-2">{training.notes}</div>
-      <button
-        onClick={() => onDelete(training.id)}
-        className="mt-2 bg-red-500 hover:bg-red-700 text-white py-1 px-3 rounded text-sm font-semibold transition"
-      >
-        Izbriši
-      </button>
+      {onDelete && (
+        <button
+          onClick={() => onDelete(training.id)}
+          className="mt-2 bg-red-500 hover:bg-red-700 text-white py-1 px-3 rounded text-sm font-semibold transition"
+        >
+          Izbriši
+        </button>
+      )}
     </div>
   );
 }
