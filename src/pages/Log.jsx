@@ -1,236 +1,295 @@
-import { useState, useRef } from "react";
+import { useState, useEffect } from "react";
 import useLocalStorage from "../hooks/useLocalStorage";
-import ConfirmModal from "../components/ConfirmModal";
+import TrainingCard from "../components/TrainingCard";
+import MealCard from "../components/MealCard";
+import CustomUndoAlert from "../components/CustomUndoAlert";
 
-// Funkcija za inicializacijo praznega treninga
-const emptyForm = {
+// Začetni objekti
+const emptyTraining = {
   date: "",
   type: "",
   duration: "",
   calories: "",
   notes: "",
 };
+const emptyMeal = {
+  date: "",
+  type: "",
+  calories: "",
+  notes: "",
+};
 
 function Log() {
-  const [form, setForm] = useState(emptyForm);
-
-  // Uporabimo custom hook za localStorage!
+  const [form, setForm] = useState(emptyTraining);
   const [trainings, setTrainings] = useLocalStorage("trainings", []);
-  const [deletedTraining, setDeletedTraining] = useState(null);
-
-  // Za custom alerte
+  const [mealForm, setMealForm] = useState(emptyMeal);
+  const [meals, setMeals] = useLocalStorage("meals", []);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [showUndo, setShowUndo] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [undo, setUndo] = useState({ show: false, item: null, type: "" });
 
-  // Timeout za undo alert
-  const undoTimeoutRef = useRef(null);
-
-  // Za modal
-  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
-
-  // Input handler
+  // --- Handlers za trening ---
   function handleChange(e) {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
+    setForm({ ...form, [e.target.name]: e.target.value });
   }
-
-  // Shrani trening in prikaži alert
   function handleSubmit(e) {
     e.preventDefault();
     if (!form.date || !form.type || !form.duration || !form.calories) {
-      setShowSuccess(false);
-      setShowUndo(false);
-      alert("Izpolni vsa obvezna polja!");
+      setSuccessMessage("Izpolni vsa obvezna polja!");
+      setShowSuccess(true);
       return;
     }
-    const newTraining = {
-      ...form,
-      id: Date.now(),
-    };
+    const newTraining = { ...form, id: Date.now() };
     setTrainings([newTraining, ...trainings]);
-    setForm(emptyForm);
-
+    setForm(emptyTraining);
+    setSuccessMessage("Trening uspešno shranjen!");
     setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 1200);
   }
 
-  // Razveljavi brisanje
-  function handleUndoDelete() {
-    if (deletedTraining) {
-      setTrainings([deletedTraining, ...trainings]);
-      setDeletedTraining(null);
-      setShowUndo(false);
-      setShowSuccess(true); // Alert za undo
-      setTimeout(() => setShowSuccess(false), 1200);
-      if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
+  // --- Handlers za obrok ---
+  function handleMealChange(e) {
+    setMealForm({ ...mealForm, [e.target.name]: e.target.value });
+  }
+  function handleMealSubmit(e) {
+    e.preventDefault();
+    if (!mealForm.date || !mealForm.type || !mealForm.calories) {
+      setSuccessMessage("Izpolni vsa obvezna polja!");
+      setShowSuccess(true);
+      return;
     }
+    const newMeal = { ...mealForm, id: Date.now() };
+    setMeals([newMeal, ...meals]);
+    setMealForm(emptyMeal);
+    setSuccessMessage("Obrok uspešno shranjen!");
+    setShowSuccess(true);
   }
 
-  // Izvedi brisanje s potrditvijo
-  function doDelete(id) {
-    const trainingToDelete = trainings.find((t) => t.id === id);
-    if (!trainingToDelete) return;
-
-    setTrainings(trainings.filter((training) => training.id !== id));
-    setDeletedTraining(trainingToDelete);
-
-    setShowUndo(true);
-    // Skrij undo alert po 6s
-    if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
-    undoTimeoutRef.current = setTimeout(() => {
-      setShowUndo(false);
-      setDeletedTraining(null);
-    }, 6000);
+  // --- Brisanje treninga/obroka (UNDO sistem) ---
+  function handleDeleteTraining(id) {
+    const training = trainings.find((t) => t.id === id);
+    setTrainings(trainings.filter((t) => t.id !== id));
+    setUndo({ show: true, item: training, type: "training" });
   }
+  function handleDeleteMeal(id) {
+    const meal = meals.find((m) => m.id === id);
+    setMeals(meals.filter((m) => m.id !== id));
+    setUndo({ show: true, item: meal, type: "meal" });
+  }
+
+  function handleUndo() {
+    if (undo.type === "training" && undo.item) {
+      setTrainings([undo.item, ...trainings]);
+    } else if (undo.type === "meal" && undo.item) {
+      setMeals([undo.item, ...meals]);
+    }
+    setUndo({ show: false, item: null, type: "" });
+  }
+
+  function handleUndoClose() {
+    setUndo({ show: false, item: null, type: "" });
+  }
+
+  useEffect(() => {
+    if (undo.show) {
+      const timer = setTimeout(() => setUndo({ show: false, item: null, type: "" }), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [undo]);
 
   return (
-    <>
-      {/* Custom success alert */}
-      {showSuccess && (
-        <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 bg-lime-400 text-gray-900 font-bold px-6 py-3 rounded-2xl shadow-2xl text-lg flex items-center space-x-4 animate-fadeInOut">
-          ✅ Akcija uspešna!
-        </div>
-      )}
-
-      {/* Custom undo alert */}
-      {showUndo && (
-        <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 bg-sky-400/90 text-gray-900 font-bold px-6 py-3 rounded-2xl shadow-2xl text-lg flex items-center space-x-4 animate-fadeInOut">
-          <span>Trening izbrisan.</span>
-          <button
-            onClick={handleUndoDelete}
-            className="bg-lime-400 text-gray-900 font-semibold px-4 py-1 rounded-xl ml-3 hover:bg-lime-300 transition"
-          >
-            Razveljavi
-          </button>
-        </div>
-      )}
-
-      {/* MODAL za potrditev brisanja */}
-      <ConfirmModal
-        open={!!confirmDeleteId}
-        title="Ali res želiš izbrisati ta trening?"
-        onConfirm={() => {
-          doDelete(confirmDeleteId);
-          setConfirmDeleteId(null);
-        }}
-        onCancel={() => setConfirmDeleteId(null)}
-        confirmText="Izbriši"
-        cancelText="Prekliči"
+    <div className="min-h-screen w-full p-6 bg-[#202533]">
+      {/* ALERTI */}
+      <CustomUndoAlert
+        show={showSuccess}
+        message={successMessage}
+        onClose={() => setShowSuccess(false)}
+        color={successMessage.includes("uspešno") ? "green" : "red"}
+        duration={successMessage.includes("uspešno") ? 1800 : 2500}
+        undo={false}
       />
-
-      <div className="p-6">
-        <h1 className="text-3xl font-bold mb-4 text-sky-400">Dodaj trening</h1>
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white/10 p-6 rounded-xl shadow-lg max-w-md space-y-4 mb-8"
-        >
-          <div>
-            <label className="block mb-1 text-lime-300 font-semibold">Datum*</label>
-            <input
-              type="date"
-              name="date"
-              value={form.date}
-              onChange={handleChange}
-              className="w-full px-3 py-2 rounded bg-gray-800 text-gray-100"
-              required
-            />
-          </div>
-          <div>
-            <label className="block mb-1 text-lime-300 font-semibold">Tip treninga*</label>
-            <select
-              name="type"
-              value={form.type}
-              onChange={handleChange}
-              className="w-full px-3 py-2 rounded bg-gray-800 text-gray-100"
-              required
-            >
-              <option value="">Izberi...</option>
-              <option value="Tek">Tek</option>
-              <option value="Fitnes">Fitnes</option>
-              <option value="Kolesarjenje">Kolesarjenje</option>
-              <option value="Plavanje">Plavanje</option>
-              <option value="Drugo">Drugo</option>
-            </select>
-          </div>
-          <div>
-            <label className="block mb-1 text-lime-300 font-semibold">Trajanje (min)*</label>
-            <input
-              type="number"
-              name="duration"
-              value={form.duration}
-              onChange={handleChange}
-              min={1}
-              className="w-full px-3 py-2 rounded bg-gray-800 text-gray-100"
-              required
-            />
-          </div>
-          <div>
-            <label className="block mb-1 text-lime-300 font-semibold">Porabljene kalorije*</label>
-            <input
-              type="number"
-              name="calories"
-              value={form.calories}
-              onChange={handleChange}
-              min={1}
-              className="w-full px-3 py-2 rounded bg-gray-800 text-gray-100"
-              required
-            />
-          </div>
-          <div>
-            <label className="block mb-1 text-lime-300 font-semibold">Opomba</label>
-            <input
-              type="text"
-              name="notes"
-              value={form.notes}
-              onChange={handleChange}
-              className="w-full px-3 py-2 rounded bg-gray-800 text-gray-100"
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-sky-500 hover:bg-lime-400 text-white font-semibold py-2 px-4 rounded shadow-lg transition"
+      <CustomUndoAlert
+        show={undo.show}
+        message={undo.type === "training" ? "Trening izbrisan." : "Obrok izbrisan."}
+        onUndo={handleUndo}
+        onClose={handleUndoClose}
+        color={undo.type === "training" ? "sky" : "pink"}
+        duration={5000}
+        undo={true}
+      />
+      {/* VSEBINA */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+        {/* LEVA STRAN: TRENINGI */}
+        <div>
+          <h2 className="text-2xl font-bold mb-5 text-sky-400">Dodaj trening</h2>
+          <form
+            onSubmit={handleSubmit}
+            className="bg-[#232940]/80 backdrop-blur-xl p-6 rounded-2xl shadow-lg shadow-sky-400/10 space-y-4 mb-10 border border-sky-700"
           >
-            Shrani trening
-          </button>
-        </form>
-
-        {/* Prikaz vseh shranjenih treningov pod obrazcem */}
-        <h2 className="text-xl font-bold mb-3 text-sky-300">Tvoji treningi</h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {trainings.length === 0 && (
-            <div className="text-gray-400">Ni še treningov.</div>
-          )}
-          {trainings.map((training) => (
-            <div
-              key={training.id}
-              className="bg-white/10 rounded-xl shadow-lg p-5 border border-sky-400"
-            >
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-lg font-bold text-lime-300">{training.type}</span>
-                <span className="text-xs text-gray-300">{training.date}</span>
-              </div>
-              <div className="flex space-x-4 mb-2">
-                <span className="text-pink-400 font-semibold">
-                  Trajanje: {training.duration} min
-                </span>
-                <span className="text-fuchsia-400 font-semibold">
-                  Kalorije: {training.calories}
-                </span>
-              </div>
-              <div className="text-gray-200 text-sm mb-2">{training.notes}</div>
-              <button
-                onClick={() => setConfirmDeleteId(training.id)}
-                className="mt-2 bg-red-500 hover:bg-red-700 text-white py-1 px-3 rounded text-sm font-semibold transition"
-              >
-                Izbriši
-              </button>
+            <div>
+              <label className="block mb-1 text-sky-300 font-bold">Datum*</label>
+              <input
+                type="date"
+                name="date"
+                value={form.date}
+                onChange={handleChange}
+                className="w-full px-3 py-2 rounded bg-[#202533] text-white border border-sky-900 focus:border-sky-400 transition"
+                required
+              />
             </div>
-          ))}
+            <div>
+              <label className="block mb-1 text-sky-300 font-bold">Tip treninga*</label>
+              <select
+                name="type"
+                value={form.type}
+                onChange={handleChange}
+                className="w-full px-3 py-2 rounded bg-[#202533] text-white border border-sky-900 focus:border-sky-400 transition"
+                required
+              >
+                <option value="">Izberi...</option>
+                <option value="Tek">Tek</option>
+                <option value="Fitnes">Fitnes</option>
+                <option value="Kolesarjenje">Kolesarjenje</option>
+                <option value="Plavanje">Plavanje</option>
+                <option value="Drugo">Drugo</option>
+              </select>
+            </div>
+            <div>
+              <label className="block mb-1 text-sky-300 font-bold">Trajanje (min)*</label>
+              <input
+                type="number"
+                name="duration"
+                value={form.duration}
+                onChange={handleChange}
+                min={1}
+                className="w-full px-3 py-2 rounded bg-[#202533] text-white border border-sky-900 focus:border-sky-400 transition"
+                required
+              />
+            </div>
+            <div>
+              <label className="block mb-1 text-sky-300 font-bold">Porabljene kalorije*</label>
+              <input
+                type="number"
+                name="calories"
+                value={form.calories}
+                onChange={handleChange}
+                min={1}
+                className="w-full px-3 py-2 rounded bg-[#202533] text-white border border-sky-900 focus:border-sky-400 transition"
+                required
+              />
+            </div>
+            <div>
+              <label className="block mb-1 text-sky-300 font-bold">Opomba</label>
+              <input
+                type="text"
+                name="notes"
+                value={form.notes}
+                onChange={handleChange}
+                className="w-full px-3 py-2 rounded bg-[#202533] text-white border border-sky-900 focus:border-sky-400 transition"
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full bg-sky-500 hover:bg-sky-400 text-white font-bold py-2 px-4 rounded-xl shadow-md transition-all duration-150"
+            >
+              Shrani trening
+            </button>
+          </form>
+          {/* Kartice za treninge */}
+          <h3 className="text-xl font-bold mb-3 text-sky-400">Tvoji treningi</h3>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {trainings.length === 0 && (
+              <div className="text-gray-500">Ni še treningov.</div>
+            )}
+            {trainings.map((training) => (
+              <TrainingCard
+                key={training.id}
+                training={training}
+                onDelete={handleDeleteTraining}
+              />
+            ))}
+          </div>
+        </div>
+        {/* DESNA STRAN: OBROKI */}
+        <div>
+          <h2 className="text-2xl font-bold mb-5 text-pink-400">Dodaj obrok</h2>
+          <form
+            onSubmit={handleMealSubmit}
+            className="bg-[#232940]/80 backdrop-blur-xl p-6 rounded-2xl shadow-lg shadow-pink-400/10 space-y-4 mb-10 border border-pink-700"
+          >
+            <div>
+              <label className="block mb-1 text-pink-300 font-bold">Datum*</label>
+              <input
+                type="date"
+                name="date"
+                value={mealForm.date}
+                onChange={handleMealChange}
+                className="w-full px-3 py-2 rounded bg-[#202533] text-white border border-pink-900 focus:border-pink-400 transition"
+                required
+              />
+            </div>
+            <div>
+              <label className="block mb-1 text-pink-300 font-bold">Tip obroka*</label>
+              <select
+                name="type"
+                value={mealForm.type}
+                onChange={handleMealChange}
+                className="w-full px-3 py-2 rounded bg-[#202533] text-white border border-pink-900 focus:border-pink-400 transition"
+                required
+              >
+                <option value="">Izberi...</option>
+                <option value="Zajtrk">Zajtrk</option>
+                <option value="Malica">Malica</option>
+                <option value="Kosilo">Kosilo</option>
+                <option value="Večerja">Večerja</option>
+                <option value="Prigrizek">Prigrizek</option>
+              </select>
+            </div>
+            <div>
+              <label className="block mb-1 text-pink-300 font-bold">Kalorije*</label>
+              <input
+                type="number"
+                name="calories"
+                value={mealForm.calories}
+                onChange={handleMealChange}
+                min={1}
+                className="w-full px-3 py-2 rounded bg-[#202533] text-white border border-pink-900 focus:border-pink-400 transition"
+                required
+              />
+            </div>
+            <div>
+              <label className="block mb-1 text-pink-300 font-bold">Opis</label>
+              <input
+                type="text"
+                name="notes"
+                value={mealForm.notes}
+                onChange={handleMealChange}
+                className="w-full px-3 py-2 rounded bg-[#202533] text-white border border-pink-900 focus:border-pink-400 transition"
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full bg-pink-500 hover:bg-pink-400 text-white font-bold py-2 px-4 rounded-xl shadow-md transition-all duration-150"
+            >
+              Shrani obrok
+            </button>
+          </form>
+          {/* Kartice za obroke */}
+          <h3 className="text-xl font-bold mb-3 text-pink-400">Tvoji obroki</h3>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {meals.length === 0 && (
+              <div className="text-gray-500">Ni še obrokov.</div>
+            )}
+            {meals.map((meal) => (
+              <MealCard
+                key={meal.id}
+                meal={meal}
+                onDelete={handleDeleteMeal}
+              />
+            ))}
+          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 

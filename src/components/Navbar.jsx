@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
-// NEON FancyLink za DESKTOP – tekst je vedno barven, z neon-shadow na hover
+// Custom link z "brand" barvami, subtilen hover underline
 function FancyLink({ to, color, children, ...props }) {
   const colorClass = {
-    fuchsia: "text-fuchsia-400 hover:text-fuchsia-300 hover:drop-shadow-[0_0_6px_#f0abfc]",
-    lime: "text-lime-400 hover:text-lime-300 hover:drop-shadow-[0_0_6px_#a3e635]",
-    sky: "text-sky-400 hover:text-cyan-300 hover:drop-shadow-[0_0_6px_#7dd3fc]",
-    green: "text-green-400 hover:text-lime-300 hover:drop-shadow-[0_0_6px_#86efac]",
-    pink: "text-pink-400 hover:text-pink-300 hover:drop-shadow-[0_0_6px_#f472b6]",
+    fuchsia: "text-fuchsia-400 hover:text-fuchsia-300",
+    lime: "text-lime-400 hover:text-lime-300",
+    sky: "text-sky-400 hover:text-cyan-300",
+    green: "text-green-400 hover:text-lime-300",
+    pink: "text-pink-400 hover:text-pink-300",
   }[color] || "text-white";
 
   return (
@@ -16,8 +16,11 @@ function FancyLink({ to, color, children, ...props }) {
       to={to}
       {...props}
       className={`
-        font-bold px-1 transition duration-200 ease-in-out
+        font-bold px-2 relative transition duration-200
         ${colorClass}
+        before:absolute before:-bottom-1 before:left-0 before:w-0 before:h-0.5
+        before:bg-current before:transition-all before:duration-200
+        hover:before:w-full
       `}
       style={{ display: "inline-block" }}
     >
@@ -30,14 +33,14 @@ function Navbar() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="w-full bg-gradient-to-r from-fuchsia-700 via-gray-900 to-lime-500 shadow-2xl z-50">
+    <nav className="w-full bg-[#202533]/95 border-b border-gray-800/80 shadow-xl z-50 backdrop-blur-lg">
       <div className="max-w-6xl mx-auto px-4 flex justify-between items-center h-16">
         {/* Logo */}
-        <span className="text-2xl font-extrabold tracking-widest text-lime-400 drop-shadow-[0_2px_10px_#a3e635] flex items-center">
+        <span className="text-2xl font-extrabold tracking-widest text-sky-400 flex items-center select-none">
           FitApp
         </span>
         {/* Desktop meni */}
-        <div className="hidden md:flex space-x-8 font-medium">
+        <div className="hidden md:flex space-x-7 font-medium">
           <FancyLink to="/dashboard" color="lime">Dashboard</FancyLink>
           <FancyLink to="/log" color="sky">Log</FancyLink>
           <FancyLink to="/calendar" color="green">Koledar</FancyLink>
@@ -45,7 +48,7 @@ function Navbar() {
         </div>
         {/* Hamburger meni */}
         <button
-          className="md:hidden text-lime-200 text-3xl focus:outline-none transition-transform duration-300"
+          className="md:hidden text-sky-200 text-3xl focus:outline-none transition-transform duration-300"
           onClick={() => setOpen(!open)}
           aria-label="Meni"
         >
@@ -54,7 +57,7 @@ function Navbar() {
           </span>
         </button>
       </div>
-      {/* Mobile meni - glassmorphism + kontrastni linki */}
+      {/* Mobile meni - temen glassmorphism + barvni linki */}
       <div
         className={`
           md:hidden transition-all duration-300 ease
@@ -67,9 +70,7 @@ function Navbar() {
       >
         <div
           className="
-            bg-white/10
-            backdrop-blur-sm
-            border-b border-white/20
+            bg-[#232940]/95 backdrop-blur-lg border-b border-gray-700/40
             px-6 py-6 flex flex-col space-y-4 font-bold text-lg
             shadow-2xl animate-fadeIn rounded-b-2xl
           "
@@ -80,7 +81,7 @@ function Navbar() {
           <Link to="/settings" className="text-pink-300 hover:text-fuchsia-400 transition" onClick={() => setOpen(false)}>Nastavitve</Link>
         </div>
       </div>
-    </div>
+    </nav>
   );
 }
 
