@@ -1,33 +1,17 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import useLocalStorage from "../hooks/useLocalStorage";
 import Footer from "../components/Footer";
 import { Flame, Dumbbell, Leaf } from "lucide-react";
 
-// Motivacijski citati – šport, prehrana, mentaliteta
-const QUOTES = [
-  // trening
-  "Small steps every day lead to big results.",
-  "Discipline beats motivation.",
-  "Push yourself, because no one else will do it for you.",
-  "No excuses. Just progress.",
-  "Consistency is the key to success.",
-  "Every workout counts – even the short ones.",
-  // prehrana
-  "You can’t out-train a bad diet.",
-  "Healthy body, healthy mind.",
-  "Eat for the body you want, not for the body you have.",
-  "Great abs are made in the kitchen.",
-  "Water is your best workout buddy.",
-  // mentaliteta/život
-  "Your only limit is your mind.",
-  "Progress, not perfection.",
-  "Take care of your body. It’s the only place you have to live.",
-  "Zdrav duh v zdravem telesu.",
-  "Small daily improvements are the key to staggering long-term results.",
+// Prevodni ključi za motivacijske citate
+const QUOTE_KEYS = [
+  "quote_1", "quote_2", "quote_3", "quote_4", "quote_5", "quote_6",
+  "quote_7", "quote_8", "quote_9", "quote_10", "quote_11",
+  "quote_12", "quote_13", "quote_14", "quote_15", "quote_16"
 ];
 
-// Največji dosežki – helper funkcija
 function calcAchievements(trainings, meals) {
   const longest = trainings.length
     ? trainings.reduce((max, t) => (Number(t.duration) > Number(max.duration) ? t : max), trainings[0])
@@ -51,22 +35,25 @@ function calcAchievements(trainings, meals) {
   return {
     longest,
     mostBurned,
-    maxDay, // [datum, kalorije]
-    maxTrDay, // [datum, št]
+    maxDay, // [date, calories]
+    maxTrDay, // [date, count]
   };
 }
 
-function getRandomQuote() {
-  return QUOTES[Math.floor(Math.random() * QUOTES.length)];
+function getRandomQuote(t) {
+  const idx = Math.floor(Math.random() * QUOTE_KEYS.length);
+  return t(QUOTE_KEYS[idx]);
 }
 
 function Home() {
+  const { t } = useTranslation();
+
   // Podatki za povzetek/dosežke
   const [trainings] = useLocalStorage("trainings", []);
   const [meals] = useLocalStorage("meals", []);
 
-  // Motivacijski citat – ob vsakem prihodu na stran je drug, ni timerja
-  const quote = useMemo(getRandomQuote, []);
+  // Motivacijski citat
+  const quote = useMemo(() => getRandomQuote(t), [t]);
 
   // Povzetek: št. treningov, obrokov, streak
   const trainingsCount = trainings.length;
@@ -90,8 +77,8 @@ function Home() {
   // Največji dosežki
   const achievements = useMemo(() => calcAchievements(trainings, meals), [trainings, meals]);
 
-  // Ime uporabnika (če želiš personalizacijo)
-  let name = ""; // Lahko dodaš po želji, npr. iz localStorage ali svojega profila
+  // Personalizacija (ime uporabnika) - če želiš
+  let name = ""; // Lahko dodaš iz localStorage ali profila
 
   return (
     <div className="min-h-screen flex flex-col justify-between bg-gradient-to-tr from-[#202533] to-[#2e3757]">
@@ -106,13 +93,15 @@ function Home() {
           </div>
           {/* Pozdrav */}
           <h1 className="mt-8 text-3xl md:text-4xl font-black text-sky-300 text-center drop-shadow mb-3">
-            {name ? `Dobrodošel nazaj, ${name}!` : "Dobrodošel v FitApp!"}
+            {name
+              ? t("home_welcome_back", { name })
+              : t("home_welcome")}
           </h1>
           {/* Opis aplikacije */}
           <p className="text-lg text-sky-100 mb-4 text-center font-medium">
-            Spremljaj svoj napredek, treninge in obroke, izboljšaj svojo kondicijo in navade – vse na enem mestu.
+            {t("home_description")}
           </p>
-          {/* Motivacijski pregovor */}
+          {/* Motivacijski citat */}
           <div className="flex items-center gap-3 text-lg italic text-lime-300 font-bold mb-7 text-center animate-fadeIn">
             <Flame className="w-6 h-6 text-pink-400" />
             <span>{quote}</span>
@@ -122,38 +111,38 @@ function Home() {
           {/* Povzetek – kartice */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-5 w-full mb-7">
             <div className="bg-[#232940]/90 rounded-xl px-4 py-5 shadow border-2 border-sky-300 flex flex-col items-center transition hover:scale-105">
-              <div className="text-lg text-sky-300 font-bold">Treningi</div>
+              <div className="text-lg text-sky-300 font-bold">{t("dashboard_trainings")}</div>
               <div className="text-2xl text-lime-300 font-black">{trainingsCount}</div>
             </div>
             <div className="bg-[#232940]/90 rounded-xl px-4 py-5 shadow border-2 border-pink-300 flex flex-col items-center transition hover:scale-105">
-              <div className="text-lg text-pink-300 font-bold">Obroki</div>
+              <div className="text-lg text-pink-300 font-bold">{t("dashboard_meals")}</div>
               <div className="text-2xl text-sky-300 font-black">{mealsCount}</div>
             </div>
             <div className="bg-[#232940]/90 rounded-xl px-4 py-5 shadow border-2 border-green-300 flex flex-col items-center transition hover:scale-105">
-              <div className="text-base text-green-200 font-bold">Streak treningov</div>
-              <div className="text-lg text-lime-300 font-bold">{trainingStreak} dni</div>
+              <div className="text-base text-green-200 font-bold">{t("dashboard_training_streak")}</div>
+              <div className="text-lg text-lime-300 font-bold">{trainingStreak} {t("days_short")}</div>
             </div>
             <div className="bg-[#232940]/90 rounded-xl px-4 py-5 shadow border-2 border-green-300 flex flex-col items-center transition hover:scale-105">
-              <div className="text-base text-green-200 font-bold">Streak obrokov</div>
-              <div className="text-lg text-lime-300 font-bold">{mealStreak} dni</div>
+              <div className="text-base text-green-200 font-bold">{t("dashboard_meal_streak")}</div>
+              <div className="text-lg text-lime-300 font-bold">{mealStreak} {t("days_short")}</div>
             </div>
           </div>
 
           {/* Tabela največjih dosežkov */}
           <div className="w-full bg-[#24293d]/90 border border-sky-800 rounded-xl shadow px-6 py-5 mb-7">
-            <h2 className="text-base text-lime-300 font-bold mb-2 text-center">Največji dosežki</h2>
+            <h2 className="text-base text-lime-300 font-bold mb-2 text-center">{t("home_achievements_title")}</h2>
             <table className="w-full text-sm text-sky-100 text-center">
               <tbody>
                 <tr>
-                  <td className="font-semibold text-sky-300 py-2">Najdaljši trening</td>
+                  <td className="font-semibold text-sky-300 py-2">{t("home_longest_training")}</td>
                   <td>
                     {achievements.longest
-                      ? `${achievements.longest.duration} min (${achievements.longest.type}, ${achievements.longest.date})`
+                      ? `${achievements.longest.duration} ${t("duration_short")} (${achievements.longest.type}, ${achievements.longest.date})`
                       : "–"}
                   </td>
                 </tr>
                 <tr>
-                  <td className="font-semibold text-pink-300 py-2">Največ kalorij na treningu</td>
+                  <td className="font-semibold text-pink-300 py-2">{t("home_most_calories_training")}</td>
                   <td>
                     {achievements.mostBurned
                       ? `${achievements.mostBurned.calories} kcal (${achievements.mostBurned.type}, ${achievements.mostBurned.date})`
@@ -161,7 +150,7 @@ function Home() {
                   </td>
                 </tr>
                 <tr>
-                  <td className="font-semibold text-green-300 py-2">Največ kalorij v dnevu (obroki)</td>
+                  <td className="font-semibold text-green-300 py-2">{t("home_most_calories_day")}</td>
                   <td>
                     {achievements.maxDay
                       ? `${achievements.maxDay[1]} kcal (${achievements.maxDay[0]})`
@@ -169,10 +158,10 @@ function Home() {
                   </td>
                 </tr>
                 <tr>
-                  <td className="font-semibold text-yellow-300 py-2">Najbolj aktiven dan (treningi)</td>
+                  <td className="font-semibold text-yellow-300 py-2">{t("home_most_active_day")}</td>
                   <td>
                     {achievements.maxTrDay
-                      ? `${achievements.maxTrDay[1]} treningov (${achievements.maxTrDay[0]})`
+                      ? `${achievements.maxTrDay[1]} ${t("dashboard_trainings").toLowerCase()} (${achievements.maxTrDay[0]})`
                       : "–"}
                   </td>
                 </tr>
@@ -185,7 +174,7 @@ function Home() {
             to="/dashboard"
             className="mt-3 bg-gradient-to-r from-sky-400 to-pink-400 text-white text-lg font-extrabold px-7 py-3 rounded-2xl shadow-lg transition hover:scale-105 hover:shadow-xl focus:ring-4 focus:ring-pink-300"
           >
-            Poglej svoj napredek
+            {t("home_cta_dashboard")}
           </Link>
         </div>
       </div>

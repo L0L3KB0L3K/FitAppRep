@@ -1,11 +1,13 @@
 import { Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 /**
- * Komponenta TrainingCard
- * Prikazuje kartico posameznega treninga z animacijami,
- * lepšim hover efektom in tooltipom za izbris.
+ * Komponenta TrainingCard – i18n
  */
 function TrainingCard({ training, onDelete }) {
+  const { t } = useTranslation();
+
+  // Prikazana sporočila so zdaj povsod prevedena!
   return (
     <div className="relative flex flex-col min-h-[110px]">
       <div
@@ -21,8 +23,16 @@ function TrainingCard({ training, onDelete }) {
           hover:scale-[1.04] hover:shadow-xl hover:ring-2 hover:ring-sky-400
         "
         tabIndex={0}
-        aria-label={`Trening: ${training.type}, ${training.duration} min, ${training.calories} kcal`}
-        title={`Trening: ${training.type}\nTrajanje: ${training.duration} min\nPorabljene kalorije: ${training.calories}`}
+        aria-label={
+          `${t("training_label")}: ${training.type}, ` +
+          `${t("training_duration")}: ${training.duration} ${t("training_duration_unit")}, ` +
+          `${t("training_calories")}: ${training.calories} kcal`
+        }
+        title={
+          `${t("training_label")}: ${training.type}\n` +
+          `${t("training_duration")}: ${training.duration} ${t("training_duration_unit")}\n` +
+          `${t("training_calories")}: ${training.calories} kcal`
+        }
       >
         {/* Header: tip treninga in datum */}
         <div className="flex justify-between items-center mb-2">
@@ -32,10 +42,10 @@ function TrainingCard({ training, onDelete }) {
         {/* Vsebina: trajanje in kalorije */}
         <div className="flex space-x-6 mb-2">
           <span className="text-lime-300 font-semibold">
-            Trajanje: {training.duration} min
+            {t("training_duration")}: {training.duration} {t("training_duration_unit")}
           </span>
           <span className="text-pink-300 font-semibold">
-            Kalorije: {training.calories}
+            {t("training_calories")}: {training.calories}
           </span>
         </div>
         {/* Opomba */}
@@ -51,8 +61,8 @@ function TrainingCard({ training, onDelete }) {
             transition-all duration-150
             focus:outline-none focus:ring-2 focus:ring-sky-300
           "
-          aria-label="Izbriši trening"
-          title="Izbriši ta trening"
+          aria-label={t("training_delete")}
+          title={t("training_delete_tooltip")}
         >
           <Trash2 size={22} />
         </button>

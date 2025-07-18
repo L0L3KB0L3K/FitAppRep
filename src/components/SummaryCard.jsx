@@ -1,9 +1,8 @@
-// src/components/SummaryCard.jsx
+import { useTranslation } from "react-i18next";
 
 /**
- * Vizualno popolnoma usklajena kartica za povzetek (summary)
- * Uporablja stil iz TrainingCard/MealCard.
- * Tipi: "trening", "obrok", "kalorije", "najdaljsi"
+ * SummaryCard – i18n
+ * Vizualno popolnoma usklajena kartica za povzetek (summary).
  */
 const COLORS = {
   trening: {
@@ -29,7 +28,17 @@ const COLORS = {
 };
 
 export default function SummaryCard({ title, value, type }) {
+  const { t } = useTranslation();
   const color = COLORS[type] || COLORS.trening;
+
+  // Prevod naslova (key je že pravilen v Dashboard)
+  const titleKey = {
+    trening: "summary_trainings",
+    obrok: "summary_meals",
+    kalorije: "summary_calories",
+    najdaljsi: "summary_longest",
+  }[type] || title;
+
   return (
     <div className="relative flex flex-col min-h-[110px]">
       <div
@@ -45,10 +54,10 @@ export default function SummaryCard({ title, value, type }) {
           hover:scale-[1.04] hover:shadow-xl hover:ring-2 ${color.ring}
         `}
         tabIndex={0}
-        aria-label={title}
-        title={title}
+        aria-label={typeof titleKey === "string" ? t(titleKey) : title}
+        title={typeof titleKey === "string" ? t(titleKey) : title}
       >
-        <div className={`text-base font-bold mb-2 ${color.text}`}>{title}</div>
+        <div className={`text-base font-bold mb-2 ${color.text}`}>{typeof titleKey === "string" ? t(titleKey) : title}</div>
         <div className="text-2xl font-black text-white">{value}</div>
       </div>
     </div>

@@ -1,9 +1,9 @@
 import React, { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 /**
- * CustomUndoAlert
+ * CustomUndoAlert – i18n
  * Prikazuje obvestilo (toast/alert) z animacijo, barvno paleto in možnostjo undo.
- * Dostopnost: role="alertdialog", aria-live, podpora za zapiranje z ESC.
  */
 function CustomUndoAlert({
   show,
@@ -14,14 +14,14 @@ function CustomUndoAlert({
   duration = 5000,
   undo = true,
 }) {
+  const { t } = useTranslation();
+
   useEffect(() => {
     if (!show) return;
-    // Timeout za samodejno zapiranje
     const timer = setTimeout(() => {
       onClose && onClose();
     }, duration);
 
-    // Podpora za ESC
     function handleKey(e) {
       if (e.key === "Escape") {
         onClose && onClose();
@@ -78,7 +78,7 @@ function CustomUndoAlert({
       `}
       role="alertdialog"
       aria-live="assertive"
-      aria-label="Obvestilo"
+      aria-label={t("alert_close")}
       tabIndex={0}
       style={{
         boxShadow: "0 8px 32px 0 rgba(40,60,120,0.13)",
@@ -106,7 +106,7 @@ function CustomUndoAlert({
           `}
           tabIndex={0}
         >
-          Razveljavi
+          {t("alert_undo")}
         </button>
       )}
       <button
@@ -118,8 +118,8 @@ function CustomUndoAlert({
           focus:outline-none
           transition-all duration-150
         "
-        title="Zapri"
-        aria-label="Zapri obvestilo"
+        title={t("alert_close")}
+        aria-label={t("alert_close")}
         tabIndex={0}
       >
         ✕

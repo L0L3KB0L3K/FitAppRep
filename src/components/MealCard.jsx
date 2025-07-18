@@ -1,11 +1,14 @@
 import { Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 /**
- * Komponenta MealCard
+ * Komponenta MealCard (i18n)
  * Prikazuje kartico posameznega obroka z animacijami,
- * lepšim hover efektom in tooltipom za izbris.
+ * hover efektom in tooltipom za izbris.
  */
 function MealCard({ meal, onDelete }) {
+  const { t } = useTranslation();
+
   return (
     <div className="relative flex flex-col min-h-[110px]">
       <div
@@ -21,8 +24,8 @@ function MealCard({ meal, onDelete }) {
           hover:scale-[1.04] hover:shadow-xl hover:ring-2 hover:ring-pink-400
         "
         tabIndex={0}
-        aria-label={`Obrok: ${meal.type}, ${meal.calories} kcal`}
-        title={`Obrok: ${meal.type}\nKalorije: ${meal.calories}`}
+        aria-label={`${t("meal_label")}: ${meal.type}, ${t("meal_calories")}: ${meal.calories}`}
+        title={`${t("meal_label")}: ${meal.type}\n${t("meal_calories")}: ${meal.calories}`}
       >
         {/* Header: tip obroka in datum */}
         <div className="flex justify-between items-center mb-2">
@@ -32,7 +35,7 @@ function MealCard({ meal, onDelete }) {
         {/* Vsebina: kalorije */}
         <div className="flex space-x-6 mb-2">
           <span className="text-pink-300 font-semibold">
-            Kalorije: {meal.calories}
+            {t("meal_calories")}: {meal.calories}
           </span>
         </div>
         {/* Opomba */}
@@ -48,8 +51,8 @@ function MealCard({ meal, onDelete }) {
             transition-all duration-150
             focus:outline-none focus:ring-2 focus:ring-pink-300
           "
-          aria-label="Izbriši obrok"
-          title="Izbriši ta obrok"
+          aria-label={t("meal_delete")}
+          title={t("meal_delete_tooltip")}
         >
           <Trash2 className="w-5 h-5" />
         </button>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import useLocalStorage from "../hooks/useLocalStorage";
 import TrainingCard from "../components/TrainingCard";
 import MealCard from "../components/MealCard";
@@ -6,20 +7,20 @@ import CustomUndoAlert from "../components/CustomUndoAlert";
 import ConfirmModal from "../components/ConfirmModal";
 
 // Helper za validacijo treninga
-function validateTraining(form) {
+function validateTraining(form, t) {
   let errors = {};
-  if (!form.date) errors.date = "Obvezen datum";
-  if (!form.type) errors.type = "Izberi tip treninga";
-  if (!form.duration) errors.duration = "Vpiši trajanje";
-  if (!form.calories) errors.calories = "Vpiši kalorije";
+  if (!form.date) errors.date = t("log_required_date");
+  if (!form.type) errors.type = t("log_required_training_type");
+  if (!form.duration) errors.duration = t("log_required_duration");
+  if (!form.calories) errors.calories = t("log_required_calories");
   return errors;
 }
 // Helper za validacijo obroka
-function validateMeal(form) {
+function validateMeal(form, t) {
   let errors = {};
-  if (!form.date) errors.date = "Obvezen datum";
-  if (!form.type) errors.type = "Izberi tip obroka";
-  if (!form.calories) errors.calories = "Vpiši kalorije";
+  if (!form.date) errors.date = t("log_required_date");
+  if (!form.type) errors.type = t("log_required_meal_type");
+  if (!form.calories) errors.calories = t("log_required_calories");
   return errors;
 }
 
@@ -46,6 +47,8 @@ const emptyMeal = {
 };
 
 function Log() {
+  const { t, i18n } = useTranslation();
+
   // State za treninge in obroke
   const [form, setForm] = useState(emptyTraining);
   const [formErrors, setFormErrors] = useState({});
@@ -69,10 +72,10 @@ function Log() {
   }
   function handleSubmit(e) {
     e.preventDefault();
-    const errors = validateTraining(form);
+    const errors = validateTraining(form, t);
     setFormErrors(errors);
     if (Object.keys(errors).length > 0) {
-      setSuccessMessage("Popravi napake v obrazcu!");
+      setSuccessMessage(t("log_fix_errors"));
       setShowSuccess(true);
       return;
     }
@@ -80,7 +83,7 @@ function Log() {
     setTrainings([newTraining, ...trainings]);
     setForm(emptyTraining);
     setFormErrors({});
-    setSuccessMessage("Trening uspešno shranjen!");
+    setSuccessMessage(t("log_training_saved"));
     setShowSuccess(true);
   }
 
@@ -91,10 +94,10 @@ function Log() {
   }
   function handleMealSubmit(e) {
     e.preventDefault();
-    const errors = validateMeal(mealForm);
+    const errors = validateMeal(mealForm, t);
     setMealErrors(errors);
     if (Object.keys(errors).length > 0) {
-      setSuccessMessage("Popravi napake v obrazcu!");
+      setSuccessMessage(t("log_fix_errors"));
       setShowSuccess(true);
       return;
     }
@@ -102,7 +105,7 @@ function Log() {
     setMeals([newMeal, ...meals]);
     setMealForm(emptyMeal);
     setMealErrors({});
-    setSuccessMessage("Obrok uspešno shranjen!");
+    setSuccessMessage(t("log_meal_saved"));
     setShowSuccess(true);
   }
 
@@ -141,6 +144,24 @@ function Log() {
     setUndo({ show: false, item: null, type: "" });
   }
 
+  // Tipi treningov in obrokov iz translation.json
+  const trainingTypes = [
+    { value: "", label: t("log_select") },
+    { value: "Tek", label: t("log_run") },
+    { value: "Fitnes", label: t("log_gym") },
+    { value: "Kolesarjenje", label: t("log_bike") },
+    { value: "Plavanje", label: t("log_swim") },
+    { value: "Drugo", label: t("log_other") },
+  ];
+  const mealTypes = [
+    { value: "", label: t("log_select") },
+    { value: "Zajtrk", label: t("log_breakfast") },
+    { value: "Malica", label: t("log_snack") },
+    { value: "Kosilo", label: t("log_lunch") },
+    { value: "Večerja", label: t("log_dinner") },
+    { value: "Prigrizek", label: t("log_other_meal") },
+  ];
+
   return (
     <div className="min-h-screen w-full p-6 bg-[#202533]">
       {/* Alerti za uspeh, napako ali razveljavitev */}
@@ -148,13 +169,13 @@ function Log() {
         show={showSuccess}
         message={successMessage}
         onClose={() => setShowSuccess(false)}
-        color={successMessage.includes("uspešno") ? "green" : "red"}
-        duration={successMessage.includes("uspešno") ? 1800 : 2500}
+        color={successMessage === t("log_training_saved") || successMessage === t("log_meal_saved") ? "green" : "red"}
+        duration={successMessage === t("log_training_saved") || successMessage === t("log_meal_saved") ? 1800 : 2500}
         undo={false}
       />
       <CustomUndoAlert
         show={undo.show}
-        message={undo.type === "training" ? "Trening izbrisan." : "Obrok izbrisan."}
+        message={undo.type === "training" ? t("deleted_training") : t("deleted_meal")}
         onUndo={handleUndo}
         onClose={handleUndoClose}
         color={undo.type === "training" ? "sky" : "pink"}
@@ -165,17 +186,21 @@ function Log() {
       {/* Potrditveni modal za izbris */}
       <ConfirmModal
         open={!!confirmDeleteId}
-        title={`Ali res želiš izbrisati ta ${confirmDeleteType === "training" ? "trening" : "obrok"}?`}
+        title={
+          confirmDeleteType === "training"
+            ? t("confirm_delete_training")
+            : t("confirm_delete_meal")
+        }
         onConfirm={handleDeleteConfirm}
         onCancel={() => setConfirmDeleteId(null)}
-        confirmText="Izbriši"
-        cancelText="Prekliči"
+        confirmText={t("delete")}
+        cancelText={t("cancel_btn")}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
         {/* LEVA STRAN: VNOS TRENINGA */}
         <div>
-          <h2 className="text-2xl font-bold mb-5 text-sky-400">Dodaj trening</h2>
+          <h2 className="text-2xl font-bold mb-5 text-sky-400">{t("log_add_training")}</h2>
           <form
             onSubmit={handleSubmit}
             className="bg-[#232940]/80 backdrop-blur-xl p-6 rounded-2xl shadow-lg shadow-sky-400/10 space-y-4 mb-10 border border-sky-700"
@@ -183,7 +208,7 @@ function Log() {
           >
             {/* Datum */}
             <div>
-              <label className="block mb-1 text-sky-300 font-bold">Datum*</label>
+              <label className="block mb-1 text-sky-300 font-bold">{t("log_training_date")}</label>
               <input
                 type="date"
                 name="date"
@@ -193,13 +218,13 @@ function Log() {
                 required
                 aria-invalid={!!formErrors.date}
                 aria-describedby="training-date-error"
-                title="Izberi datum treninga"
+                title={t("log_training_date")}
               />
               <InputError message={formErrors.date} />
             </div>
             {/* Tip treninga */}
             <div>
-              <label className="block mb-1 text-sky-300 font-bold">Tip treninga*</label>
+              <label className="block mb-1 text-sky-300 font-bold">{t("log_training_types")}</label>
               <select
                 name="type"
                 value={form.type}
@@ -208,20 +233,17 @@ function Log() {
                 required
                 aria-invalid={!!formErrors.type}
                 aria-describedby="training-type-error"
-                title="Izberi tip treninga"
+                title={t("log_training_types")}
               >
-                <option value="">Izberi...</option>
-                <option value="Tek">Tek</option>
-                <option value="Fitnes">Fitnes</option>
-                <option value="Kolesarjenje">Kolesarjenje</option>
-                <option value="Plavanje">Plavanje</option>
-                <option value="Drugo">Drugo</option>
+                {trainingTypes.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
               </select>
               <InputError message={formErrors.type} />
             </div>
             {/* Trajanje */}
             <div>
-              <label className="block mb-1 text-sky-300 font-bold">Trajanje (min)*</label>
+              <label className="block mb-1 text-sky-300 font-bold">{t("log_training_duration")}</label>
               <input
                 type="number"
                 name="duration"
@@ -232,13 +254,13 @@ function Log() {
                 required
                 aria-invalid={!!formErrors.duration}
                 aria-describedby="training-duration-error"
-                title="Vnesi trajanje treninga v minutah"
+                title={t("log_training_duration")}
               />
               <InputError message={formErrors.duration} />
             </div>
             {/* Kalorije */}
             <div>
-              <label className="block mb-1 text-sky-300 font-bold">Porabljene kalorije*</label>
+              <label className="block mb-1 text-sky-300 font-bold">{t("log_training_calories")}</label>
               <input
                 type="number"
                 name="calories"
@@ -249,36 +271,36 @@ function Log() {
                 required
                 aria-invalid={!!formErrors.calories}
                 aria-describedby="training-calories-error"
-                title="Vnesi porabljene kalorije"
+                title={t("log_training_calories")}
               />
               <InputError message={formErrors.calories} />
             </div>
             {/* Opomba */}
             <div>
-              <label className="block mb-1 text-sky-300 font-bold">Opomba</label>
+              <label className="block mb-1 text-sky-300 font-bold">{t("log_notes")}</label>
               <input
                 type="text"
                 name="notes"
                 value={form.notes}
                 onChange={handleChange}
                 className="w-full px-3 py-2 rounded bg-[#202533] text-white border border-sky-900 focus:border-sky-400 transition"
-                title="Dodatna opomba ali komentar"
+                title={t("log_notes")}
               />
             </div>
             {/* Shrani trening gumb */}
             <button
               type="submit"
               className="w-full bg-sky-500 hover:bg-sky-400 text-white font-bold py-2 px-4 rounded-xl shadow-md transition-all duration-150 hover:scale-105 hover:ring-2 hover:ring-sky-300 hover:shadow-lg active:scale-95"
-              title="Shrani trening"
+              title={t("log_save_training")}
             >
-              Shrani trening
+              {t("log_save_training")}
             </button>
           </form>
           {/* Kartice za treninge */}
-          <h3 className="text-xl font-bold mb-3 text-sky-400">Tvoji treningi</h3>
+          <h3 className="text-xl font-bold mb-3 text-sky-400">{t("your_trainings")}</h3>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {trainings.length === 0 && (
-              <div className="text-gray-500">Ni še treningov.</div>
+              <div className="text-gray-500">{t("log_no_trainings")}</div>
             )}
             {trainings.map((training) => (
               <TrainingCard
@@ -292,7 +314,7 @@ function Log() {
 
         {/* DESNA STRAN: VNOS OBROKA */}
         <div>
-          <h2 className="text-2xl font-bold mb-5 text-pink-400">Dodaj obrok</h2>
+          <h2 className="text-2xl font-bold mb-5 text-pink-400">{t("log_add_meal")}</h2>
           <form
             onSubmit={handleMealSubmit}
             className="bg-[#232940]/80 backdrop-blur-xl p-6 rounded-2xl shadow-lg shadow-pink-400/10 space-y-4 mb-10 border border-pink-700"
@@ -300,7 +322,7 @@ function Log() {
           >
             {/* Datum */}
             <div>
-              <label className="block mb-1 text-pink-300 font-bold">Datum*</label>
+              <label className="block mb-1 text-pink-300 font-bold">{t("log_meal_date")}</label>
               <input
                 type="date"
                 name="date"
@@ -310,13 +332,13 @@ function Log() {
                 required
                 aria-invalid={!!mealErrors.date}
                 aria-describedby="meal-date-error"
-                title="Izberi datum obroka"
+                title={t("log_meal_date")}
               />
               <InputError message={mealErrors.date} />
             </div>
             {/* Tip obroka */}
             <div>
-              <label className="block mb-1 text-pink-300 font-bold">Tip obroka*</label>
+              <label className="block mb-1 text-pink-300 font-bold">{t("log_meal_types")}</label>
               <select
                 name="type"
                 value={mealForm.type}
@@ -325,20 +347,17 @@ function Log() {
                 required
                 aria-invalid={!!mealErrors.type}
                 aria-describedby="meal-type-error"
-                title="Izberi tip obroka"
+                title={t("log_meal_types")}
               >
-                <option value="">Izberi...</option>
-                <option value="Zajtrk">Zajtrk</option>
-                <option value="Malica">Malica</option>
-                <option value="Kosilo">Kosilo</option>
-                <option value="Večerja">Večerja</option>
-                <option value="Prigrizek">Prigrizek</option>
+                {mealTypes.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
               </select>
               <InputError message={mealErrors.type} />
             </div>
             {/* Kalorije */}
             <div>
-              <label className="block mb-1 text-pink-300 font-bold">Kalorije*</label>
+              <label className="block mb-1 text-pink-300 font-bold">{t("log_meal_calories")}</label>
               <input
                 type="number"
                 name="calories"
@@ -349,36 +368,36 @@ function Log() {
                 required
                 aria-invalid={!!mealErrors.calories}
                 aria-describedby="meal-calories-error"
-                title="Vnesi količino kalorij"
+                title={t("log_meal_calories")}
               />
               <InputError message={mealErrors.calories} />
             </div>
             {/* Opis */}
             <div>
-              <label className="block mb-1 text-pink-300 font-bold">Opis</label>
+              <label className="block mb-1 text-pink-300 font-bold">{t("log_description")}</label>
               <input
                 type="text"
                 name="notes"
                 value={mealForm.notes}
                 onChange={handleMealChange}
                 className="w-full px-3 py-2 rounded bg-[#202533] text-white border border-pink-900 focus:border-pink-400 transition"
-                title="Dodaj opis ali opombo"
+                title={t("log_description")}
               />
             </div>
             {/* Shrani obrok gumb */}
             <button
               type="submit"
               className="w-full bg-pink-500 hover:bg-pink-400 text-white font-bold py-2 px-4 rounded-xl shadow-md transition-all duration-150 hover:scale-105 hover:ring-2 hover:ring-pink-300 hover:shadow-lg active:scale-95"
-              title="Shrani obrok"
+              title={t("log_save_meal")}
             >
-              Shrani obrok
+              {t("log_save_meal")}
             </button>
           </form>
           {/* Kartice za obroke */}
-          <h3 className="text-xl font-bold mb-3 text-pink-400">Tvoji obroki</h3>
+          <h3 className="text-xl font-bold mb-3 text-pink-400">{t("your_meals")}</h3>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {meals.length === 0 && (
-              <div className="text-gray-500">Ni še obrokov.</div>
+              <div className="text-gray-500">{t("log_no_meals")}</div>
             )}
             {meals.map((meal) => (
               <MealCard

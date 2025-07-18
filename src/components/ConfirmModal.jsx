@@ -1,17 +1,19 @@
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 /**
- * ConfirmModal
- * Prikazuje modal za potrditev (npr. izbris). Fokusirano, dostopno, podpora za ESC in klik izven modala.
+ * ConfirmModal – i18n
+ * Prikazuje modal za potrditev (npr. izbris). 
  */
 function ConfirmModal({
   open,
   title,
   onConfirm,
   onCancel,
-  confirmText = "Izbriši",
-  cancelText = "Prekliči",
+  confirmText,
+  cancelText,
 }) {
+  const { t } = useTranslation();
   const modalRef = useRef();
 
   // ESC tipka za zapiranje
@@ -47,7 +49,7 @@ function ConfirmModal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
       role="dialog"
       aria-modal="true"
-      aria-label="Potrditveno okno"
+      aria-label={t("confirm_title")}
       onClick={handleBackdropClick}
       tabIndex={-1}
     >
@@ -56,24 +58,28 @@ function ConfirmModal({
         ref={modalRef}
         tabIndex={0}
       >
-        <div className="text-lg text-gray-100 font-bold mb-4" id="confirm-modal-title">{title}</div>
+        <div className="text-lg text-gray-100 font-bold mb-4" id="confirm-modal-title">
+          {title || t("confirm_title")}
+        </div>
         <div className="flex space-x-4 mt-2">
           <button
             className="bg-red-500 hover:bg-fuchsia-500 text-white px-5 py-2 rounded-xl font-extrabold text-base shadow transition-all duration-200 border border-red-400 hover:shadow-xl"
             onClick={onConfirm}
-            aria-label={confirmText}
+            aria-label={confirmText || t("confirm_yes")}
             tabIndex={0}
             autoFocus
           >
-            <span className="drop-shadow-[0_0_6px_#f0abfc]">{confirmText}</span>
+            <span className="drop-shadow-[0_0_6px_#f0abfc]">
+              {confirmText || t("confirm_yes")}
+            </span>
           </button>
           <button
             className="bg-gray-900 hover:bg-gray-800 text-sky-300 px-5 py-2 rounded-xl font-bold text-base shadow border border-sky-500 transition-all duration-200"
             onClick={onCancel}
-            aria-label={cancelText}
+            aria-label={cancelText || t("confirm_no")}
             tabIndex={0}
           >
-            {cancelText}
+            {cancelText || t("confirm_no")}
           </button>
         </div>
       </div>
