@@ -2,12 +2,13 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 
 // Ključi za localStorage (lahko jih kasneje nadomestiš s Firebase get/set)
 const LOCAL_KEY = "fitapp_user";
+
+// SAMO TVOJA custom tema!
 const DEFAULT_SETTINGS = {
   displayName: "",
   avatar: "",
-  theme: "dark",
-  dailyReminders: false, // primer custom toggla
-  showStreakBadge: true  // še en primer toggla
+  dailyReminders: false,
+  showStreakBadge: true
 };
 
 const UserSettingsContext = createContext();
@@ -43,11 +44,11 @@ export function UserSettingsProvider({ children }) {
     // TODO: Firebase reset če boš hotel!
   }
 
-  // TEMA instant (class na <html>)
+  // Ob vsakem renderju dodaš svoj class na <html>
   useEffect(() => {
-    document.documentElement.classList.remove("dark", "light");
-    document.documentElement.classList.add(settings.theme);
-  }, [settings.theme]);
+    document.documentElement.classList.remove("custom-dark", "light", "dark");
+    document.documentElement.classList.add("custom-dark");
+  }, []);
 
   return (
     <UserSettingsContext.Provider value={{
@@ -61,6 +62,7 @@ export function UserSettingsProvider({ children }) {
   );
 }
 
+// Custom hook za uporabo contexta v komponentah
 export function useUserSettings() {
   return useContext(UserSettingsContext);
 }

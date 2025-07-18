@@ -1,5 +1,5 @@
 // src/App.jsx
-
+import "./i18n"; // Pomembno, da se inicializira!
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { UserSettingsProvider } from "./context/UserSettingsContext";
 

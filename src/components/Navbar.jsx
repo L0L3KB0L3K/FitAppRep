@@ -1,10 +1,48 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
-/**
- * FancyLink – univerzalna navigacijska povezava z barvami, underline efektom,
- * možnostjo prikaza, če je aktivna (npr. bold, ikona, underline)
- */
+// Jezikovni toggle z zastavicama
+function LangToggle({ className = "" }) {
+  const { i18n } = useTranslation();
+  const isSl = i18n.language === "sl";
+  function toggleLang() {
+    i18n.changeLanguage(isSl ? "en" : "sl");
+  }
+  return (
+    <button
+      onClick={toggleLang}
+      className={
+        "group flex items-center px-2 py-1 rounded-full border-2 border-pink-400 bg-[#232940] shadow transition select-none " +
+        className
+      }
+      aria-label={isSl ? "Slovenščina" : "English"}
+      title={isSl ? "Slovenščina" : "English"}
+      tabIndex={0}
+    >
+      <span
+        className={`text-2xl mr-1 transition-all ${
+          isSl
+            ? "drop-shadow-[0_0_8px_#38bdf8] scale-110"
+            : "opacity-60"
+        }`}
+      >
+        🇸🇮
+      </span>
+      <span
+        className={`text-2xl ml-1 transition-all ${
+          !isSl
+            ? "drop-shadow-[0_0_8px_#fde047] scale-110"
+            : "opacity-60"
+        }`}
+      >
+        🇬🇧
+      </span>
+    </button>
+  );
+}
+
+// FancyLink z i18n prevodom
 function FancyLink({ to, color, active, children, ...props }) {
   const colorClass = {
     fuchsia: "text-fuchsia-400 hover:text-fuchsia-300",
@@ -13,8 +51,6 @@ function FancyLink({ to, color, active, children, ...props }) {
     green: "text-green-400 hover:text-lime-300",
     pink: "text-pink-400 hover:text-pink-300",
   }[color] || "text-white";
-
-  // underline: če je aktivno, je vedno 100%, če ni pa na hover animira
   return (
     <Link
       to={to}
@@ -44,23 +80,19 @@ function FancyLink({ to, color, active, children, ...props }) {
   );
 }
 
-/**
- * Navbar – glavni navigacijski meni aplikacije
- * Logo vodi na Home (/), Home ni več med gumbi.
- */
 function Navbar() {
   const [open, setOpen] = useState(false);
   const location = useLocation();
+  const { t } = useTranslation();
 
-  // Helper: preveri ali je trenutna pot aktivna
   const isActive = (path) => location.pathname.startsWith(path);
 
-  // Navigacijske poti in barve (brez Home)
+  // Navigacijske poti in barve
   const navLinks = [
-    { to: "/dashboard", label: "Dashboard", color: "lime" },
-    { to: "/log", label: "Log", color: "sky" },
-    { to: "/calendar", label: "Koledar", color: "green" },
-    { to: "/settings", label: "Nastavitve", color: "pink" },
+    { to: "/dashboard", label: t("dashboard"), color: "lime" },
+    { to: "/log", label: t("log"), color: "sky" },
+    { to: "/calendar", label: t("calendar"), color: "green" },
+    { to: "/settings", label: t("settings"), color: "pink" },
   ];
 
   return (
@@ -69,14 +101,14 @@ function Navbar() {
       aria-label="Glavna navigacija"
     >
       <div className="max-w-6xl mx-auto px-4 flex justify-between items-center h-16">
-        {/* Logo z animacijo in aria-label */}
+        {/* Logo */}
         <Link
           to="/"
           className="text-2xl font-extrabold tracking-widest text-sky-400 flex items-center select-none transition-transform duration-200 hover:scale-105 hover:drop-shadow-lg"
-          aria-label="Domov - FitApp"
-          title="Domov"
+          aria-label={t("home")}
+          title={t("home")}
         >
-          <span className="mr-2">FitApp</span>
+          <span className="mr-2">{t("app_name")}</span>
           <span
             className="w-4 h-4 rounded-full bg-gradient-to-br from-sky-400 to-fuchsia-400 ml-1 animate-pulse shadow-xl"
             aria-hidden="true"
@@ -95,28 +127,30 @@ function Navbar() {
             </FancyLink>
           ))}
         </div>
+        {/* Language toggle */}
+        <div className="hidden md:flex items-center ml-6">
+          <LangToggle />
+        </div>
         {/* Hamburger meni za mobilne naprave */}
         <button
           className="md:hidden text-sky-200 text-3xl focus:outline-none transition-transform duration-300 hover:scale-110"
           onClick={() => setOpen(!open)}
-          aria-label={open ? "Zapri meni" : "Odpri meni"}
-          title={open ? "Zapri meni" : "Odpri meni"}
+          aria-label={open ? t("close_menu") : t("open_menu")}
+          title={open ? t("close_menu") : t("open_menu")}
         >
           <span className={`transition-transform duration-300 ${open ? "rotate-90" : ""}`}>
             {open ? "✖" : "☰"}
           </span>
         </button>
       </div>
-      {/* Mobilni meni (glassmorphism, barvni linki, animacija) */}
+      {/* Mobilni meni */}
       <div
         className={`
           md:hidden transition-all duration-300 ease
           ${open ? "h-56 opacity-100 visible" : "h-0 opacity-0 invisible"}
           overflow-hidden
         `}
-        style={{
-          zIndex: 49,
-        }}
+        style={{ zIndex: 49 }}
       >
         <div
           className="
@@ -149,6 +183,10 @@ function Navbar() {
               )}
             </Link>
           ))}
+          {/* Jezikovni toggle za mobilnike */}
+          <div className="flex justify-center pt-2">
+            <LangToggle />
+          </div>
         </div>
       </div>
     </nav>
