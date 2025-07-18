@@ -189,8 +189,6 @@ function Home() {
           </Link>
         </div>
       </div>
-      {/* Footer (na vseh straneh!) */}
-      <Footer />
     </div>
   );
 }
