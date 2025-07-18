@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next"; // I18N
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
@@ -9,7 +10,6 @@ import 'tippy.js/dist/tippy.css';
 import SummaryCard from "../components/SummaryCard";
 import Confetti from 'react-confetti';
 
-// Ikone za prikaz
 const ICONS = {
   Tek: "🏃",
   Fitnes: "🏋️",
@@ -59,14 +59,14 @@ function calcMonthlyStats(trainings, meals, viewDate) {
   };
 }
 
-// Motivacijske ilustracije
-const EMPTY_QUOTES = [
-  "Vsak začetek je lažji, kot misliš. Dodaj svojo prvo aktivnost!",
-  "Tudi najdaljša pot se začne s prvim korakom.",
-  "Danes je najboljši dan za nov začetek!",
-  "Majhni koraki = veliki rezultati!",
-  "Tvoja pot se začne tukaj.",
-  "Že en trening je boljši kot noben!"
+// Motivacijske ilustracije (I18N)
+const EMPTY_QUOTES_KEYS = [
+  "motivational_1",
+  "motivational_2",
+  "motivational_3",
+  "motivational_4",
+  "motivational_5",
+  "motivational_6"
 ];
 
 const TRAINING_OPTIONS = [
@@ -77,6 +77,7 @@ const MEAL_OPTIONS = [
 ];
 
 function CalendarPage() {
+  const { t, i18n } = useTranslation(); // I18N
   const [trainings, setTrainings] = useLocalStorage("trainings", []);
   const [meals, setMeals] = useLocalStorage("meals", []);
   const [selected, setSelected] = useState(null);
@@ -85,7 +86,6 @@ function CalendarPage() {
   const [addDate, setAddDate] = useState(null);
   const [viewDate, setViewDate] = useState(new Date()); // za mesečne statistike
 
-  // -- Za modal obrazec --
   const [formType, setFormType] = useState("trening"); // 'trening' ali 'obrok'
   const [formData, setFormData] = useState({
     type: "",
@@ -116,7 +116,6 @@ function CalendarPage() {
     setSelected(info.event.extendedProps);
   }
 
-  // Klik na prazen dan = hitri vnos
   function handleDateClick(info) {
     setAddDate(info.dateStr);
     setFormType("trening");
@@ -129,21 +128,14 @@ function CalendarPage() {
     setShowAddModal(true);
   }
 
-  // Koledar preklopi mesec → update viewDate
   function handleDatesSet(info) {
     setViewDate(info.start);
   }
 
-  // Povzetek meseca
   const stats = useMemo(() => calcMonthlyStats(trainings, meals, viewDate), [trainings, meals, viewDate]);
-
-  // Aktivnosti v trenutnem mesecu
   const isEmptyMonth = stats.countTrainings + stats.countMeals === 0;
-
-  // Streak badge
   const streak = getStreak(trainings);
 
-  // --- Obdelava obrazca ---
   function handleChange(e) {
     setFormData(f => ({
       ...f,
@@ -186,7 +178,7 @@ function CalendarPage() {
     <div className="min-h-screen flex flex-col bg-[#202533]">
       {showConfetti && <Confetti width={window.innerWidth} height={window.innerHeight} numberOfPieces={190} recycle={false} />}
       <div className="flex-1 max-w-5xl mx-auto w-full px-2 py-5 md:px-4 md:py-10">
-        <h1 className="text-2xl font-bold text-sky-300 mb-6 text-center">Koledar aktivnosti</h1>
+        <h1 className="text-2xl font-bold text-sky-300 mb-6 text-center">{t("calendar_title")}</h1>
         {/* HERO ICON nad koledarjem */}
         <div className="flex justify-center mb-[-26px]">
           <div className="rounded-full shadow-2xl p-3 bg-gradient-to-br from-sky-400 to-pink-400 animate-bounce">
@@ -197,7 +189,7 @@ function CalendarPage() {
           <FullCalendar
             plugins={[dayGridPlugin, interactionPlugin]}
             initialView="dayGridMonth"
-            locale="sl"
+            locale={i18n.language === "en" ? "en" : "sl"} // I18N
             height="auto"
             contentHeight={window.innerWidth < 600 ? 420 : 600}
             aspectRatio={window.innerWidth < 600 ? 1 : 1.9}
@@ -217,7 +209,7 @@ function CalendarPage() {
           {/* Streak badge */}
           {streak > 1 && (
             <div className="absolute top-2 right-4 md:right-8 bg-gradient-to-r from-orange-400 to-pink-500 text-white px-4 py-1 rounded-xl text-xs font-bold flex items-center gap-2 shadow-xl border-2 border-lime-400 animate-fadeInOut z-40">
-              🔥 Streak: {streak} dni
+              🔥 {t("streak")}: {streak} {t("days")}
             </div>
           )}
         </div>
@@ -227,10 +219,10 @@ function CalendarPage() {
             <div className="flex flex-col items-center p-6 rounded-2xl bg-[#232940]/90 border border-sky-400 shadow-lg max-w-lg">
               <Flame className="w-9 h-9 text-pink-400 mb-1" />
               <span className="text-sky-100 font-bold text-center">
-                {EMPTY_QUOTES[Math.floor(Math.random() * EMPTY_QUOTES.length)]}
+                {t(EMPTY_QUOTES_KEYS[Math.floor(Math.random() * EMPTY_QUOTES_KEYS.length)])}
               </span>
               <span className="mt-2 text-sm text-sky-400">
-                Klikni na dan in dodaj svojo prvo aktivnost!
+                {t("motivational_banner")}
               </span>
             </div>
           </div>
@@ -239,28 +231,27 @@ function CalendarPage() {
         <div className="w-full max-w-3xl mx-auto mt-8 px-2">
           <div className="grid md:grid-cols-4 grid-cols-2 gap-4">
             <SummaryCard
-              title="Treningi (mesec)"
+              title={t("month_trainings")}
               value={stats.countTrainings}
               type="trening"
             />
             <SummaryCard
-              title="Obroki (mesec)"
+              title={t("month_meals")}
               value={stats.countMeals}
               type="obrok"
             />
             <SummaryCard
-              title="Kalorij (mesec)"
+              title={t("month_calories")}
               value={stats.calories}
               type="kalorije"
             />
             <SummaryCard
-              title="Najdaljši trening"
+              title={t("longest_training")}
               value={stats.longest ? `${stats.longest.duration} min (${stats.longest.type})` : "-"}
               type="najdaljsi"
             />
           </div>
         </div>
-
       </div>
 
       {/* Modal za podrobnosti */}
@@ -274,7 +265,9 @@ function CalendarPage() {
             onClick={e => e.stopPropagation()}
           >
             <h2 className="text-lg text-sky-300 font-bold mb-3 text-center">
-              {selected.category === "trening" ? "Podrobnosti treninga" : "Podrobnosti obroka"}
+              {selected.category === "trening"
+                ? t("details_training")
+                : t("details_meal")}
             </h2>
             <div className="text-xl mb-2 text-center">
               {ICONS[selected.type] || "🏋️"} <b>{selected.type}</b>
@@ -285,14 +278,24 @@ function CalendarPage() {
             <div className="mb-2 text-center">
               {selected.category === "trening" ? (
                 <>
-                  <span className="block text-lime-300">Trajanje: <b>{selected.duration}</b> min</span>
-                  <span className="block text-pink-300">Kalorije: <b>{selected.calories}</b></span>
-                  {selected.notes && <div className="text-gray-400 italic mt-1">{selected.notes}</div>}
+                  <span className="block text-lime-300">
+                    {t("duration_short")}: <b>{selected.duration}</b> min
+                  </span>
+                  <span className="block text-pink-300">
+                    {t("calories_short")}: <b>{selected.calories}</b>
+                  </span>
+                  {selected.notes && (
+                    <div className="text-gray-400 italic mt-1">{selected.notes}</div>
+                  )}
                 </>
               ) : (
                 <>
-                  <span className="block text-pink-300">Kalorije: <b>{selected.calories}</b></span>
-                  {selected.notes && <div className="text-gray-400 italic mt-1">{selected.notes}</div>}
+                  <span className="block text-pink-300">
+                    {t("calories_short")}: <b>{selected.calories}</b>
+                  </span>
+                  {selected.notes && (
+                    <div className="text-gray-400 italic mt-1">{selected.notes}</div>
+                  )}
                 </>
               )}
             </div>
@@ -300,7 +303,7 @@ function CalendarPage() {
               className="mt-4 px-5 py-2 rounded-xl bg-sky-400 text-white font-bold hover:bg-sky-500 transition w-full"
               onClick={() => setSelected(null)}
             >
-              Zapri
+              {t("close")}
             </button>
           </div>
         </div>
@@ -314,15 +317,21 @@ function CalendarPage() {
             onClick={e => e.stopPropagation()}
             onSubmit={handleAddNew}
           >
-            <h2 className="text-lg text-sky-300 font-bold mb-3 text-center">Dodaj novo aktivnost</h2>
+            <h2 className="text-lg text-sky-300 font-bold mb-3 text-center">
+              {t("add_activity")}
+            </h2>
             <div className="flex justify-center gap-4 mb-5">
-              <button type="button" className={`px-4 py-1 rounded-xl font-bold border-2 transition ${formType === "trening" ? "bg-sky-400 text-white border-sky-400" : "bg-transparent border-gray-500 text-gray-300"}`} onClick={() => setFormType("trening")}>Trening</button>
-              <button type="button" className={`px-4 py-1 rounded-xl font-bold border-2 transition ${formType === "obrok" ? "bg-pink-400 text-white border-pink-400" : "bg-transparent border-gray-500 text-gray-300"}`} onClick={() => setFormType("obrok")}>Obrok</button>
+              <button type="button" className={`px-4 py-1 rounded-xl font-bold border-2 transition ${formType === "trening" ? "bg-sky-400 text-white border-sky-400" : "bg-transparent border-gray-500 text-gray-300"}`} onClick={() => setFormType("trening")}>
+                {t("training")}
+              </button>
+              <button type="button" className={`px-4 py-1 rounded-xl font-bold border-2 transition ${formType === "obrok" ? "bg-pink-400 text-white border-pink-400" : "bg-transparent border-gray-500 text-gray-300"}`} onClick={() => setFormType("obrok")}>
+                {t("meal")}
+              </button>
             </div>
             <input type="hidden" name="date" value={addDate} />
             <div className="mb-2">
               <label className="block text-gray-200 text-sm font-bold mb-1">
-                {formType === "trening" ? "Tip treninga*" : "Tip obroka*"}
+                {formType === "trening" ? t("type_training") : t("type_meal")}
               </label>
               <select
                 name="type"
@@ -333,7 +342,7 @@ function CalendarPage() {
                 value={formData.type}
                 onChange={handleChange}
               >
-                <option value="">Izberi...</option>
+                <option value="">{t("choose")}</option>
                 {(formType === "trening" ? TRAINING_OPTIONS : MEAL_OPTIONS).map(opt => (
                   <option key={opt} value={opt}>{opt}</option>
                 ))}
@@ -341,20 +350,26 @@ function CalendarPage() {
             </div>
             {formType === "trening" && (
               <div className="mb-2">
-                <label className="block text-gray-200 text-sm font-bold mb-1">Trajanje (min)</label>
-                <input type="number" min="1" name="duration" required className="w-full rounded-lg px-3 py-2 bg-[#232940] border border-lime-400 focus:outline-none focus:ring-2 focus:ring-lime-300 text-lime-200" placeholder="Trajanje v minutah" value={formData.duration} onChange={handleChange} />
+                <label className="block text-gray-200 text-sm font-bold mb-1">
+                  {t("duration")}
+                </label>
+                <input type="number" min="1" name="duration" required className="w-full rounded-lg px-3 py-2 bg-[#232940] border border-lime-400 focus:outline-none focus:ring-2 focus:ring-lime-300 text-lime-200" placeholder={t("duration")} value={formData.duration} onChange={handleChange} />
               </div>
             )}
             <div className="mb-2">
-              <label className="block text-gray-200 text-sm font-bold mb-1">Kalorije</label>
-              <input type="number" min="1" name="calories" required className="w-full rounded-lg px-3 py-2 bg-[#232940] border border-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-300 text-pink-200" placeholder="Št. kalorij" value={formData.calories} onChange={handleChange} />
+              <label className="block text-gray-200 text-sm font-bold mb-1">
+                {t("calories")}
+              </label>
+              <input type="number" min="1" name="calories" required className="w-full rounded-lg px-3 py-2 bg-[#232940] border border-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-300 text-pink-200" placeholder={t("calories")} value={formData.calories} onChange={handleChange} />
             </div>
             <div className="mb-2">
-              <label className="block text-gray-200 text-sm font-bold mb-1">Opombe</label>
-              <textarea name="notes" rows={2} className="w-full rounded-lg px-3 py-2 bg-[#232940] border border-gray-500 focus:outline-none focus:ring-2 focus:ring-sky-300 text-sky-100" placeholder="Poljubno..." value={formData.notes} onChange={handleChange} />
+              <label className="block text-gray-200 text-sm font-bold mb-1">
+                {t("notes")}
+              </label>
+              <textarea name="notes" rows={2} className="w-full rounded-lg px-3 py-2 bg-[#232940] border border-gray-500 focus:outline-none focus:ring-2 focus:ring-sky-300 text-sky-100" placeholder={t("notes")} value={formData.notes} onChange={handleChange} />
             </div>
             <button type="submit" className="mt-4 px-6 py-2 rounded-xl bg-gradient-to-r from-sky-400 to-pink-400 text-white font-bold hover:scale-105 hover:shadow-xl transition w-full">
-              Shrani aktivnost
+              {t("save_activity")}
             </button>
           </form>
         </div>
