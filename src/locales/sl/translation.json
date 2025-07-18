@@ -182,6 +182,35 @@
   "footer_github": "GitHub",
   "footer_separator": "|",
 
-  "error_loading": "Napaka pri nalaganju podatkov."
+  "error_loading": "Napaka pri nalaganju podatkov.",
+  "profile_title": "Profil uporabnika",
+  "profile_avatar": "Avatar",
+  "profile_name": "Ime",
+  "profile_email": "E-pošta",
+  "profile_about": "O meni",
+  "profile_about_placeholder": "Kratek opis o tebi...",
+  "profile_language": "Jezik",
+  "profile_save": "Shrani spremembe",
+  "profile_cancel": "Prekliči",
+  "profile_edit": "Uredi",
+  "profile_saved": "Profil uspešno shranjen!",
+  "profile_change_password": "Spremeni geslo",
+  "profile_error_name_required": "Vpiši ime!",
+  "profile_error_about_too_long": "Opis je predolg.",
+  "profile_select_avatar": "Izberi avatar",
+  "profile_empty_motivation": "Začni z izpolnjevanjem profila in izberi svoj avatar – FitApp je bolj zabaven, ko je prilagojen tebi!",
+  "profile_upload": "Naloži svojo sliko",
+  "profile_upload_success": "Slika uspešno naložena!",
+  "profile_upload_error": "Napaka pri nalaganju slike.",
+  "profile_avatar_tooltip": "Klikni za izbiro tega avatarja",
+  "profile_edit_tooltip": "Uredi profil",
+  "profile_save_tooltip": "Shrani spremembe",
+  "profile_cancel_tooltip": "Prekliči",
+  "profile_upload_tooltip": "Naloži svojo sliko kot avatar",
+  "settings_motivation": "Nastavi FitApp po svojih željah. Tukaj lahko upravljaš opomnike, značke in podatke. Za spremembo imena ali avatarja pojdi na Profil.",
+  "settings_profile_info": "Za urejanje imena, avatarja ali osebnih podatkov klikni Profil.",
+  "logout": "Odjava",
+  "profile_char_count": "{{count}}/120 znakov"
+
 
 }

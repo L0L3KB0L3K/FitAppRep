@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Log from "./pages/Log";
 import Calendar from "./pages/Calendar";
 import Settings from "./pages/Settings";
+import Profile from "./pages/Profile";
 import Footer from "./components/Footer";
 import "./index.css";
 
@@ -32,6 +33,7 @@ function App() {
             <Route path="/log" element={<Log />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<div className="text-white text-center mt-10">404 - Stran ni najdena</div>} />
           </Routes>
         </div>

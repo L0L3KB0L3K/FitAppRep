@@ -69,13 +69,6 @@ const EMPTY_QUOTES_KEYS = [
   "motivational_6"
 ];
 
-const TRAINING_OPTIONS = [
-  "Tek", "Fitnes", "Kolesarjenje", "Plavanje", "Drugo"
-];
-const MEAL_OPTIONS = [
-  "Zajtrk", "Malica", "Kosilo", "Večerja", "Prigrizek"
-];
-
 function CalendarPage() {
   const { t, i18n } = useTranslation(); // I18N
   const [trainings, setTrainings] = useLocalStorage("trainings", []);
@@ -85,7 +78,21 @@ function CalendarPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [addDate, setAddDate] = useState(null);
   const [viewDate, setViewDate] = useState(new Date()); // za mesečne statistike
+const TRAINING_OPTIONS = useMemo(() => [
+  { value: "run", label: t("log_run") },
+  { value: "gym", label: t("log_gym") },
+  { value: "bike", label: t("log_bike") },
+  { value: "swim", label: t("log_swim") },
+  { value: "other", label: t("log_other") },
+], [t]);
 
+const MEAL_OPTIONS = useMemo(() => [
+  { value: "breakfast", label: t("log_breakfast") },
+  { value: "snack", label: t("log_snack") },
+  { value: "lunch", label: t("log_lunch") },
+  { value: "dinner", label: t("log_dinner") },
+  { value: "other", label: t("log_other_meal") },
+], [t]);
   const [formType, setFormType] = useState("trening"); // 'trening' ali 'obrok'
   const [formData, setFormData] = useState({
     type: "",
@@ -344,7 +351,7 @@ function CalendarPage() {
               >
                 <option value="">{t("choose")}</option>
                 {(formType === "trening" ? TRAINING_OPTIONS : MEAL_OPTIONS).map(opt => (
-                  <option key={opt} value={opt}>{opt}</option>
+                 <option key={opt.value} value={opt.value}>{opt.label}</option>
                 ))}
               </select>
             </div>
