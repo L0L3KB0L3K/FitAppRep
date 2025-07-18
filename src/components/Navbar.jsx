@@ -44,11 +44,9 @@ function FancyLink({ to, color, active, children, ...props }) {
   );
 }
 
-
 /**
  * Navbar – glavni navigacijski meni aplikacije
- * Prikazuje logo z animacijo, navigacijo za desktop in mobilne naprave,
- * aktivni zavihek je vizualno označen, dostopnost urejena (aria-labeli, title).
+ * Logo vodi na Home (/), Home ni več med gumbi.
  */
 function Navbar() {
   const [open, setOpen] = useState(false);
@@ -57,7 +55,7 @@ function Navbar() {
   // Helper: preveri ali je trenutna pot aktivna
   const isActive = (path) => location.pathname.startsWith(path);
 
-  // Navigacijske poti in barve (za lažje DRY vzdrževanje)
+  // Navigacijske poti in barve (brez Home)
   const navLinks = [
     { to: "/dashboard", label: "Dashboard", color: "lime" },
     { to: "/log", label: "Log", color: "sky" },
@@ -73,7 +71,7 @@ function Navbar() {
       <div className="max-w-6xl mx-auto px-4 flex justify-between items-center h-16">
         {/* Logo z animacijo in aria-label */}
         <Link
-          to="/dashboard"
+          to="/"
           className="text-2xl font-extrabold tracking-widest text-sky-400 flex items-center select-none transition-transform duration-200 hover:scale-105 hover:drop-shadow-lg"
           aria-label="Domov - FitApp"
           title="Domov"
