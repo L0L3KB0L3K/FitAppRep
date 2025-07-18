@@ -1,10 +1,36 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import useLocalStorage from "../hooks/useLocalStorage";
 import TrainingCard from "../components/TrainingCard";
 import MealCard from "../components/MealCard";
 import CustomUndoAlert from "../components/CustomUndoAlert";
+import ConfirmModal from "../components/ConfirmModal";
 
-// Začetni prazni objekti
+// Helper za validacijo treninga
+function validateTraining(form) {
+  let errors = {};
+  if (!form.date) errors.date = "Obvezen datum";
+  if (!form.type) errors.type = "Izberi tip treninga";
+  if (!form.duration) errors.duration = "Vpiši trajanje";
+  if (!form.calories) errors.calories = "Vpiši kalorije";
+  return errors;
+}
+// Helper za validacijo obroka
+function validateMeal(form) {
+  let errors = {};
+  if (!form.date) errors.date = "Obvezen datum";
+  if (!form.type) errors.type = "Izberi tip obroka";
+  if (!form.calories) errors.calories = "Vpiši kalorije";
+  return errors;
+}
+
+// Komponenta za prikaz napake (DRY, za polja)
+function InputError({ message }) {
+  if (!message) return null;
+  return (
+    <div className="text-red-400 text-xs font-semibold mt-1 ml-1 animate-pulse">{message}</div>
+  );
+}
+
 const emptyTraining = {
   date: "",
   type: "",
@@ -19,52 +45,28 @@ const emptyMeal = {
   notes: "",
 };
 
-// Komponenta za prikaz napake pod poljem (enostaven DRY način)
-function InputError({ message }) {
-  if (!message) return null;
-  return (
-    <div className="text-red-400 text-xs font-semibold mt-1 ml-1 animate-pulse">{message}</div>
-  );
-}
-
-// Helper za preverjanje praznih vrednosti
-function validateTraining(form) {
-  let errors = {};
-  if (!form.date) errors.date = "Obvezen datum";
-  if (!form.type) errors.type = "Izberi tip treninga";
-  if (!form.duration) errors.duration = "Vpiši trajanje";
-  if (!form.calories) errors.calories = "Vpiši kalorije";
-  return errors;
-}
-function validateMeal(form) {
-  let errors = {};
-  if (!form.date) errors.date = "Obvezen datum";
-  if (!form.type) errors.type = "Izberi tip obroka";
-  if (!form.calories) errors.calories = "Vpiši kalorije";
-  return errors;
-}
-
 function Log() {
-  // --- State za obrazce, podatke in napake ---
+  // State za treninge in obroke
   const [form, setForm] = useState(emptyTraining);
   const [formErrors, setFormErrors] = useState({});
   const [trainings, setTrainings] = useLocalStorage("trainings", []);
-
   const [mealForm, setMealForm] = useState(emptyMeal);
   const [mealErrors, setMealErrors] = useState({});
   const [meals, setMeals] = useLocalStorage("meals", []);
 
+  // Undo/alert + potrditveni modal
+  const [undo, setUndo] = useState({ show: false, item: null, type: "" });
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-  const [undo, setUndo] = useState({ show: false, item: null, type: "" });
 
-  // --- Obdelava spremembe v poljih za trening ---
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [confirmDeleteType, setConfirmDeleteType] = useState("training");
+
+  // --- Vnos treninga ---
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
-    // Napako odstranimo takoj, ko uporabnik popravi polje
     setFormErrors({ ...formErrors, [e.target.name]: "" });
   }
-
   function handleSubmit(e) {
     e.preventDefault();
     const errors = validateTraining(form);
@@ -82,12 +84,11 @@ function Log() {
     setShowSuccess(true);
   }
 
-  // --- Obdelava spremembe v poljih za obrok ---
+  // --- Vnos obroka ---
   function handleMealChange(e) {
     setMealForm({ ...mealForm, [e.target.name]: e.target.value });
     setMealErrors({ ...mealErrors, [e.target.name]: "" });
   }
-
   function handleMealSubmit(e) {
     e.preventDefault();
     const errors = validateMeal(mealForm);
@@ -105,18 +106,29 @@ function Log() {
     setShowSuccess(true);
   }
 
-  // --- Brisanje treninga/obroka (UNDO sistem) ---
-  function handleDeleteTraining(id) {
-    const training = trainings.find((t) => t.id === id);
-    setTrainings(trainings.filter((t) => t.id !== id));
-    setUndo({ show: true, item: training, type: "training" });
+  // --- Potrditveni modal (najprej potrdi, nato izbriši + undo) ---
+  function handleAskDeleteTraining(id) {
+    setConfirmDeleteId(id);
+    setConfirmDeleteType("training");
   }
-  function handleDeleteMeal(id) {
-    const meal = meals.find((m) => m.id === id);
-    setMeals(meals.filter((m) => m.id !== id));
-    setUndo({ show: true, item: meal, type: "meal" });
+  function handleAskDeleteMeal(id) {
+    setConfirmDeleteId(id);
+    setConfirmDeleteType("meal");
+  }
+  function handleDeleteConfirm() {
+    if (confirmDeleteType === "training") {
+      const training = trainings.find((t) => t.id === confirmDeleteId);
+      setTrainings(trainings.filter((t) => t.id !== confirmDeleteId));
+      setUndo({ show: true, item: training, type: "training" });
+    } else {
+      const meal = meals.find((m) => m.id === confirmDeleteId);
+      setMeals(meals.filter((m) => m.id !== confirmDeleteId));
+      setUndo({ show: true, item: meal, type: "meal" });
+    }
+    setConfirmDeleteId(null);
   }
 
+  // Undo logika
   function handleUndo() {
     if (undo.type === "training" && undo.item) {
       setTrainings([undo.item, ...trainings]);
@@ -125,21 +137,13 @@ function Log() {
     }
     setUndo({ show: false, item: null, type: "" });
   }
-
   function handleUndoClose() {
     setUndo({ show: false, item: null, type: "" });
   }
 
-  useEffect(() => {
-    if (undo.show) {
-      const timer = setTimeout(() => setUndo({ show: false, item: null, type: "" }), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [undo]);
-
   return (
     <div className="min-h-screen w-full p-6 bg-[#202533]">
-      {/* ALERTI */}
+      {/* Alerti za uspeh, napako ali razveljavitev */}
       <CustomUndoAlert
         show={showSuccess}
         message={successMessage}
@@ -156,6 +160,16 @@ function Log() {
         color={undo.type === "training" ? "sky" : "pink"}
         duration={5000}
         undo={true}
+      />
+
+      {/* Potrditveni modal za izbris */}
+      <ConfirmModal
+        open={!!confirmDeleteId}
+        title={`Ali res želiš izbrisati ta ${confirmDeleteType === "training" ? "trening" : "obrok"}?`}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setConfirmDeleteId(null)}
+        confirmText="Izbriši"
+        cancelText="Prekliči"
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -270,7 +284,7 @@ function Log() {
               <TrainingCard
                 key={training.id}
                 training={training}
-                onDelete={handleDeleteTraining}
+                onDelete={() => handleAskDeleteTraining(training.id)} // Pomembno: najprej modal!
               />
             ))}
           </div>
@@ -370,7 +384,7 @@ function Log() {
               <MealCard
                 key={meal.id}
                 meal={meal}
-                onDelete={handleDeleteMeal}
+                onDelete={() => handleAskDeleteMeal(meal.id)} // Pomembno: najprej modal!
               />
             ))}
           </div>

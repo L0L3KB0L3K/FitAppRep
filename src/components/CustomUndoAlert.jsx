@@ -1,6 +1,10 @@
 import React, { useEffect } from "react";
 
-// CustomUndoAlert – temen glass stil, pastelni border/gumb po tvoji paleti
+/**
+ * CustomUndoAlert
+ * Prikazuje obvestilo (toast/alert) z animacijo, barvno paleto in možnostjo undo.
+ * Dostopnost: role="alertdialog", aria-live, podpora za zapiranje z ESC.
+ */
 function CustomUndoAlert({
   show,
   message,
@@ -11,17 +15,29 @@ function CustomUndoAlert({
   undo = true,
 }) {
   useEffect(() => {
-    if (show) {
-      const timer = setTimeout(() => {
+    if (!show) return;
+    // Timeout za samodejno zapiranje
+    const timer = setTimeout(() => {
+      onClose && onClose();
+    }, duration);
+
+    // Podpora za ESC
+    function handleKey(e) {
+      if (e.key === "Escape") {
         onClose && onClose();
-      }, duration);
-      return () => clearTimeout(timer);
+      }
     }
+    window.addEventListener("keydown", handleKey);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("keydown", handleKey);
+    };
   }, [show, duration, onClose]);
 
   if (!show) return null;
 
-  // Pastel paleta
+  // Pastel barvna paleta
   const palette = {
     sky: {
       border: "border-sky-300",
@@ -60,8 +76,13 @@ function CustomUndoAlert({
         ${theme.border}
         animate-fadeInOut transition-all duration-300
       `}
+      role="alertdialog"
+      aria-live="assertive"
+      aria-label="Obvestilo"
+      tabIndex={0}
       style={{
         boxShadow: "0 8px 32px 0 rgba(40,60,120,0.13)",
+        outline: "none",
       }}
     >
       {/* Ikona v barvi alerta */}
@@ -83,6 +104,7 @@ function CustomUndoAlert({
             shadow hover:shadow-lg active:scale-95
             transition-all duration-150
           `}
+          tabIndex={0}
         >
           Razveljavi
         </button>
@@ -97,7 +119,8 @@ function CustomUndoAlert({
           transition-all duration-150
         "
         title="Zapri"
-        style={{ lineHeight: "1", fontWeight: "bold" }}
+        aria-label="Zapri obvestilo"
+        tabIndex={0}
       >
         ✕
       </button>

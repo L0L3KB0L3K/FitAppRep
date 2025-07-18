@@ -3,6 +3,7 @@ import useLocalStorage from "../hooks/useLocalStorage";
 import TrainingCard from "../components/TrainingCard";
 import MealCard from "../components/MealCard";
 import ConfirmModal from "../components/ConfirmModal";
+import CustomUndoAlert from "../components/CustomUndoAlert";
 import { Bar, Line, Doughnut } from "react-chartjs-2";
 import {
   Chart,
@@ -146,15 +147,42 @@ function Dashboard() {
   // Doughnut: razmerje športov
   const sportsDist = getSportsDistribution(trainings);
 
-  // Brisanje – modal
+  // Brisanje + undo logika
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [confirmDeleteType, setConfirmDeleteType] = useState("training");
+  const [undo, setUndo] = useState({ show: false, item: null, type: "" });
+
+  // Potrdi izbris in prikaži undo alert
+  function handleDeleteConfirm() {
+    if (confirmDeleteType === "training") {
+      const training = trainings.find((t) => t.id === confirmDeleteId);
+      setTrainings(trainings.filter((t) => t.id !== confirmDeleteId));
+      setUndo({ show: true, item: training, type: "training" });
+    } else {
+      const meal = meals.find((m) => m.id === confirmDeleteId);
+      setMeals(meals.filter((m) => m.id !== confirmDeleteId));
+      setUndo({ show: true, item: meal, type: "meal" });
+    }
+    setConfirmDeleteId(null);
+  }
+
+  // Undo logika
+  function handleUndo() {
+    if (undo.type === "training" && undo.item) {
+      setTrainings([undo.item, ...trainings]);
+    } else if (undo.type === "meal" && undo.item) {
+      setMeals([undo.item, ...meals]);
+    }
+    setUndo({ show: false, item: null, type: "" });
+  }
+  function handleUndoClose() {
+    setUndo({ show: false, item: null, type: "" });
+  }
 
   return (
     <div className="p-6 w-full min-h-screen bg-[#202533]">
       {/* Povzetek cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        {/* Vsaka kartica z animacijo na hover */}
         <div className="bg-[#232940]/80 rounded-xl p-5 shadow border-2 border-sky-300 flex flex-col items-center transition-transform duration-200 hover:scale-105 hover:shadow-lg">
           <div className="text-lg text-sky-300 font-bold">Treningi</div>
           <div className="text-3xl text-lime-300 font-black">{totalTrainings}</div>
@@ -173,7 +201,18 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* Glavni graf: napredni pregled aktivnosti (overflow-x za mobile, tooltip, lepši naslovi) */}
+      {/* UNDO ALERT za izbris */}
+      <CustomUndoAlert
+        show={undo.show}
+        message={undo.type === "training" ? "Trening izbrisan." : "Obrok izbrisan."}
+        onUndo={handleUndo}
+        onClose={handleUndoClose}
+        color={undo.type === "training" ? "sky" : "pink"}
+        duration={5000}
+        undo={true}
+      />
+
+      {/* Glavni graf: napredni pregled aktivnosti */}
       <div className="bg-[#232940]/80 rounded-xl p-5 shadow border-2 border-lime-300 mb-8 max-w-2xl mx-auto overflow-x-auto">
         <h2 className="text-lg text-lime-300 font-bold mb-3" title="Prikaz trendov v zadnjih 30 dneh">
           Napredni pregled aktivnosti (30 dni)
@@ -277,11 +316,9 @@ function Dashboard() {
             plugins: {
               legend: { 
                 labels: { color: "#fff", font: { size: 14, weight: "bold" } },
-                // Legenda lahko kasneje clickable (toggle datasets)
               },
               tooltip: {
                 callbacks: {
-                  // Podrobnejši tooltipi za vsako serijo
                   label: function(context) {
                     let lbl = context.dataset.label + ": " + context.parsed.y;
                     if (context.dataset.label.includes("kalorije")) lbl += " kcal";
@@ -324,7 +361,6 @@ function Dashboard() {
                 grid: { color: "rgba(255,255,255,0.03)" },
               },
             },
-            // Za touch naprave
             elements: {
               point: { hitRadius: 10 },
             },
@@ -475,14 +511,7 @@ function Dashboard() {
       <ConfirmModal
         open={!!confirmDeleteId}
         title={`Ali res želiš izbrisati ta ${confirmDeleteType === "training" ? "trening" : "obrok"}?`}
-        onConfirm={() => {
-          if (confirmDeleteType === "training") {
-            setTrainings(trainings.filter((t) => t.id !== confirmDeleteId));
-          } else {
-            setMeals(meals.filter((m) => m.id !== confirmDeleteId));
-          }
-          setConfirmDeleteId(null);
-        }}
+        onConfirm={handleDeleteConfirm}
         onCancel={() => setConfirmDeleteId(null)}
         confirmText="Izbriši"
         cancelText="Prekliči"
