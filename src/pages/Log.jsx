@@ -4,7 +4,7 @@ import TrainingCard from "../components/TrainingCard";
 import MealCard from "../components/MealCard";
 import CustomUndoAlert from "../components/CustomUndoAlert";
 
-// Začetni objekti
+// Začetni prazni objekti
 const emptyTraining = {
   date: "",
   type: "",
@@ -19,47 +19,88 @@ const emptyMeal = {
   notes: "",
 };
 
+// Komponenta za prikaz napake pod poljem (enostaven DRY način)
+function InputError({ message }) {
+  if (!message) return null;
+  return (
+    <div className="text-red-400 text-xs font-semibold mt-1 ml-1 animate-pulse">{message}</div>
+  );
+}
+
+// Helper za preverjanje praznih vrednosti
+function validateTraining(form) {
+  let errors = {};
+  if (!form.date) errors.date = "Obvezen datum";
+  if (!form.type) errors.type = "Izberi tip treninga";
+  if (!form.duration) errors.duration = "Vpiši trajanje";
+  if (!form.calories) errors.calories = "Vpiši kalorije";
+  return errors;
+}
+function validateMeal(form) {
+  let errors = {};
+  if (!form.date) errors.date = "Obvezen datum";
+  if (!form.type) errors.type = "Izberi tip obroka";
+  if (!form.calories) errors.calories = "Vpiši kalorije";
+  return errors;
+}
+
 function Log() {
+  // --- State za obrazce, podatke in napake ---
   const [form, setForm] = useState(emptyTraining);
+  const [formErrors, setFormErrors] = useState({});
   const [trainings, setTrainings] = useLocalStorage("trainings", []);
+
   const [mealForm, setMealForm] = useState(emptyMeal);
+  const [mealErrors, setMealErrors] = useState({});
   const [meals, setMeals] = useLocalStorage("meals", []);
+
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [undo, setUndo] = useState({ show: false, item: null, type: "" });
 
-  // --- Handlers za trening ---
+  // --- Obdelava spremembe v poljih za trening ---
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
+    // Napako odstranimo takoj, ko uporabnik popravi polje
+    setFormErrors({ ...formErrors, [e.target.name]: "" });
   }
+
   function handleSubmit(e) {
     e.preventDefault();
-    if (!form.date || !form.type || !form.duration || !form.calories) {
-      setSuccessMessage("Izpolni vsa obvezna polja!");
+    const errors = validateTraining(form);
+    setFormErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      setSuccessMessage("Popravi napake v obrazcu!");
       setShowSuccess(true);
       return;
     }
     const newTraining = { ...form, id: Date.now() };
     setTrainings([newTraining, ...trainings]);
     setForm(emptyTraining);
+    setFormErrors({});
     setSuccessMessage("Trening uspešno shranjen!");
     setShowSuccess(true);
   }
 
-  // --- Handlers za obrok ---
+  // --- Obdelava spremembe v poljih za obrok ---
   function handleMealChange(e) {
     setMealForm({ ...mealForm, [e.target.name]: e.target.value });
+    setMealErrors({ ...mealErrors, [e.target.name]: "" });
   }
+
   function handleMealSubmit(e) {
     e.preventDefault();
-    if (!mealForm.date || !mealForm.type || !mealForm.calories) {
-      setSuccessMessage("Izpolni vsa obvezna polja!");
+    const errors = validateMeal(mealForm);
+    setMealErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      setSuccessMessage("Popravi napake v obrazcu!");
       setShowSuccess(true);
       return;
     }
     const newMeal = { ...mealForm, id: Date.now() };
     setMeals([newMeal, ...meals]);
     setMealForm(emptyMeal);
+    setMealErrors({});
     setSuccessMessage("Obrok uspešno shranjen!");
     setShowSuccess(true);
   }
@@ -116,15 +157,17 @@ function Log() {
         duration={5000}
         undo={true}
       />
-      {/* VSEBINA */}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-        {/* LEVA STRAN: TRENINGI */}
+        {/* LEVA STRAN: VNOS TRENINGA */}
         <div>
           <h2 className="text-2xl font-bold mb-5 text-sky-400">Dodaj trening</h2>
           <form
             onSubmit={handleSubmit}
             className="bg-[#232940]/80 backdrop-blur-xl p-6 rounded-2xl shadow-lg shadow-sky-400/10 space-y-4 mb-10 border border-sky-700"
+            autoComplete="off"
           >
+            {/* Datum */}
             <div>
               <label className="block mb-1 text-sky-300 font-bold">Datum*</label>
               <input
@@ -132,18 +175,26 @@ function Log() {
                 name="date"
                 value={form.date}
                 onChange={handleChange}
-                className="w-full px-3 py-2 rounded bg-[#202533] text-white border border-sky-900 focus:border-sky-400 transition"
+                className={`w-full px-3 py-2 rounded bg-[#202533] text-white border ${formErrors.date ? "border-red-400 ring-2 ring-red-300" : "border-sky-900"} focus:border-sky-400 transition`}
                 required
+                aria-invalid={!!formErrors.date}
+                aria-describedby="training-date-error"
+                title="Izberi datum treninga"
               />
+              <InputError message={formErrors.date} />
             </div>
+            {/* Tip treninga */}
             <div>
               <label className="block mb-1 text-sky-300 font-bold">Tip treninga*</label>
               <select
                 name="type"
                 value={form.type}
                 onChange={handleChange}
-                className="w-full px-3 py-2 rounded bg-[#202533] text-white border border-sky-900 focus:border-sky-400 transition"
+                className={`w-full px-3 py-2 rounded bg-[#202533] text-white border ${formErrors.type ? "border-red-400 ring-2 ring-red-300" : "border-sky-900"} focus:border-sky-400 transition`}
                 required
+                aria-invalid={!!formErrors.type}
+                aria-describedby="training-type-error"
+                title="Izberi tip treninga"
               >
                 <option value="">Izberi...</option>
                 <option value="Tek">Tek</option>
@@ -152,7 +203,9 @@ function Log() {
                 <option value="Plavanje">Plavanje</option>
                 <option value="Drugo">Drugo</option>
               </select>
+              <InputError message={formErrors.type} />
             </div>
+            {/* Trajanje */}
             <div>
               <label className="block mb-1 text-sky-300 font-bold">Trajanje (min)*</label>
               <input
@@ -161,10 +214,15 @@ function Log() {
                 value={form.duration}
                 onChange={handleChange}
                 min={1}
-                className="w-full px-3 py-2 rounded bg-[#202533] text-white border border-sky-900 focus:border-sky-400 transition"
+                className={`w-full px-3 py-2 rounded bg-[#202533] text-white border ${formErrors.duration ? "border-red-400 ring-2 ring-red-300" : "border-sky-900"} focus:border-sky-400 transition`}
                 required
+                aria-invalid={!!formErrors.duration}
+                aria-describedby="training-duration-error"
+                title="Vnesi trajanje treninga v minutah"
               />
+              <InputError message={formErrors.duration} />
             </div>
+            {/* Kalorije */}
             <div>
               <label className="block mb-1 text-sky-300 font-bold">Porabljene kalorije*</label>
               <input
@@ -173,10 +231,15 @@ function Log() {
                 value={form.calories}
                 onChange={handleChange}
                 min={1}
-                className="w-full px-3 py-2 rounded bg-[#202533] text-white border border-sky-900 focus:border-sky-400 transition"
+                className={`w-full px-3 py-2 rounded bg-[#202533] text-white border ${formErrors.calories ? "border-red-400 ring-2 ring-red-300" : "border-sky-900"} focus:border-sky-400 transition`}
                 required
+                aria-invalid={!!formErrors.calories}
+                aria-describedby="training-calories-error"
+                title="Vnesi porabljene kalorije"
               />
+              <InputError message={formErrors.calories} />
             </div>
+            {/* Opomba */}
             <div>
               <label className="block mb-1 text-sky-300 font-bold">Opomba</label>
               <input
@@ -185,11 +248,14 @@ function Log() {
                 value={form.notes}
                 onChange={handleChange}
                 className="w-full px-3 py-2 rounded bg-[#202533] text-white border border-sky-900 focus:border-sky-400 transition"
+                title="Dodatna opomba ali komentar"
               />
             </div>
+            {/* Shrani trening gumb */}
             <button
               type="submit"
-              className="w-full bg-sky-500 hover:bg-sky-400 text-white font-bold py-2 px-4 rounded-xl shadow-md transition-all duration-150"
+              className="w-full bg-sky-500 hover:bg-sky-400 text-white font-bold py-2 px-4 rounded-xl shadow-md transition-all duration-150 hover:scale-105 hover:ring-2 hover:ring-sky-300 hover:shadow-lg active:scale-95"
+              title="Shrani trening"
             >
               Shrani trening
             </button>
@@ -209,13 +275,16 @@ function Log() {
             ))}
           </div>
         </div>
-        {/* DESNA STRAN: OBROKI */}
+
+        {/* DESNA STRAN: VNOS OBROKA */}
         <div>
           <h2 className="text-2xl font-bold mb-5 text-pink-400">Dodaj obrok</h2>
           <form
             onSubmit={handleMealSubmit}
             className="bg-[#232940]/80 backdrop-blur-xl p-6 rounded-2xl shadow-lg shadow-pink-400/10 space-y-4 mb-10 border border-pink-700"
+            autoComplete="off"
           >
+            {/* Datum */}
             <div>
               <label className="block mb-1 text-pink-300 font-bold">Datum*</label>
               <input
@@ -223,18 +292,26 @@ function Log() {
                 name="date"
                 value={mealForm.date}
                 onChange={handleMealChange}
-                className="w-full px-3 py-2 rounded bg-[#202533] text-white border border-pink-900 focus:border-pink-400 transition"
+                className={`w-full px-3 py-2 rounded bg-[#202533] text-white border ${mealErrors.date ? "border-red-400 ring-2 ring-red-300" : "border-pink-900"} focus:border-pink-400 transition`}
                 required
+                aria-invalid={!!mealErrors.date}
+                aria-describedby="meal-date-error"
+                title="Izberi datum obroka"
               />
+              <InputError message={mealErrors.date} />
             </div>
+            {/* Tip obroka */}
             <div>
               <label className="block mb-1 text-pink-300 font-bold">Tip obroka*</label>
               <select
                 name="type"
                 value={mealForm.type}
                 onChange={handleMealChange}
-                className="w-full px-3 py-2 rounded bg-[#202533] text-white border border-pink-900 focus:border-pink-400 transition"
+                className={`w-full px-3 py-2 rounded bg-[#202533] text-white border ${mealErrors.type ? "border-red-400 ring-2 ring-red-300" : "border-pink-900"} focus:border-pink-400 transition`}
                 required
+                aria-invalid={!!mealErrors.type}
+                aria-describedby="meal-type-error"
+                title="Izberi tip obroka"
               >
                 <option value="">Izberi...</option>
                 <option value="Zajtrk">Zajtrk</option>
@@ -243,7 +320,9 @@ function Log() {
                 <option value="Večerja">Večerja</option>
                 <option value="Prigrizek">Prigrizek</option>
               </select>
+              <InputError message={mealErrors.type} />
             </div>
+            {/* Kalorije */}
             <div>
               <label className="block mb-1 text-pink-300 font-bold">Kalorije*</label>
               <input
@@ -252,10 +331,15 @@ function Log() {
                 value={mealForm.calories}
                 onChange={handleMealChange}
                 min={1}
-                className="w-full px-3 py-2 rounded bg-[#202533] text-white border border-pink-900 focus:border-pink-400 transition"
+                className={`w-full px-3 py-2 rounded bg-[#202533] text-white border ${mealErrors.calories ? "border-red-400 ring-2 ring-red-300" : "border-pink-900"} focus:border-pink-400 transition`}
                 required
+                aria-invalid={!!mealErrors.calories}
+                aria-describedby="meal-calories-error"
+                title="Vnesi količino kalorij"
               />
+              <InputError message={mealErrors.calories} />
             </div>
+            {/* Opis */}
             <div>
               <label className="block mb-1 text-pink-300 font-bold">Opis</label>
               <input
@@ -264,11 +348,14 @@ function Log() {
                 value={mealForm.notes}
                 onChange={handleMealChange}
                 className="w-full px-3 py-2 rounded bg-[#202533] text-white border border-pink-900 focus:border-pink-400 transition"
+                title="Dodaj opis ali opombo"
               />
             </div>
+            {/* Shrani obrok gumb */}
             <button
               type="submit"
-              className="w-full bg-pink-500 hover:bg-pink-400 text-white font-bold py-2 px-4 rounded-xl shadow-md transition-all duration-150"
+              className="w-full bg-pink-500 hover:bg-pink-400 text-white font-bold py-2 px-4 rounded-xl shadow-md transition-all duration-150 hover:scale-105 hover:ring-2 hover:ring-pink-300 hover:shadow-lg active:scale-95"
+              title="Shrani obrok"
             >
               Shrani obrok
             </button>
