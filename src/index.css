@@ -1,9 +1,92 @@
 @import "tailwindcss";
 
+/* Alert fade animacija */
 @keyframes fadeInOut {
   0% { opacity: 0; transform: scale(0.98);}
   100% { opacity: 1; transform: scale(1);}
 }
 .animate-fadeInOut {
   animation: fadeInOut 0.35s;
+}
+
+/* FullCalendar: bele številke dnevov */
+.fc-theme-standard .fc-daygrid-day-number {
+  color: #fff !important;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+/* FullCalendar: header dnevi v barvnem gradientu */
+.fc-theme-standard .fc-col-header-cell-cushion {
+  font-weight: 700;
+  background: linear-gradient(90deg, #38bdf8, #a3e635, #f472b6, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+  font-size: 1.08em;
+  letter-spacing: 0.03em;
+}
+
+/* FullCalendar: celice (td, th) */
+.fc-theme-standard td, .fc-theme-standard th {
+  background: transparent !important;
+  border-color: #374151 !important;
+  border-width: 2px !important; /* debelejši border med celicami */
+}
+
+/* FullCalendar: naslov meseca */
+.fc .fc-toolbar-title {
+  color: #38bdf8 !important;
+}
+
+/* FullCalendar: gumbi */
+.fc .fc-button {
+  background: #232940;
+  color: #e0e8ef;
+  border: 1px solid #38bdf8;
+  transition: 0.16s;
+}
+.fc .fc-button-primary:not(:disabled):active, 
+.fc .fc-button-primary:not(:disabled).fc-button-active {
+  background: #38bdf8 !important;
+  color: #fff !important;
+}
+
+/* FullCalendar: eventi */
+.fc .fc-daygrid-event {
+  font-size: 0.97rem;
+  font-weight: 600;
+  border-radius: 8px;
+  margin-bottom: 2px;
+}
+
+/* Responsive padding za koledar */
+@media (max-width: 600px) {
+  .fc {
+    font-size: 0.98em;
+  }
+}
+
+/* Hover efekt za celice */
+.fc-theme-standard td:hover {
+  box-shadow: 0 0 0 2px #38bdf8, 0 0 10px #a3e63544;
+  transition: box-shadow 0.16s;
+  background: rgba(56, 189, 248, 0.09);
+  z-index: 2;
+  cursor: pointer;
+}
+
+/* Highlight za današnji dan */
+.fc-theme-standard .fc-day-today {
+  background: linear-gradient(90deg, #38bdf833, #a3e63522 80%);
+  border: 2.5px solid #38bdf8 !important;
+  box-shadow: 0 0 12px #38bdf866;
+  border-radius: 10px;
+}
+
+/* Modern barvni gradient border-top za footer */
+.border-gradient-to-r {
+  border-top: 4px solid;
+  border-image: linear-gradient(90deg, #38bdf8, #a3e635, #f472b6, #818cf8) 1;
 }
