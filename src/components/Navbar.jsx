@@ -138,16 +138,14 @@ function Navbar() {
         {/* Logo */}
         <Link
           to="/"
-          className="text-2xl font-extrabold tracking-widest text-sky-400 flex items-center select-none transition-transform duration-200 hover:scale-105 hover:drop-shadow-lg"
-          aria-label={t("home")}
-          title={t("home")}
+          className="flex items-center select-none transition-transform duration-200 hover:scale-105 hover:drop-shadow-lg"
+          aria-label="Domov"
+          title="Domov"
         >
-          <span className="mr-2">{t("app_name")}</span>
-          <span
-            className="w-4 h-4 rounded-full bg-gradient-to-br from-sky-400 to-fuchsia-400 ml-1 animate-pulse shadow-xl"
-            aria-hidden="true"
-          />
+          <img src="src\assets\icon.png" alt="FitApp" className="w-20 h-20 mr-2" />
+          {/* ali .w-12 h-12 če ti je to preveliko */}
         </Link>
+
         {/* Desktop meni */}
         <div className="hidden md:flex space-x-7 font-medium">
           {navLinks.map((link) => (
